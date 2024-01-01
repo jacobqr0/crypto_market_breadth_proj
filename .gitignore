@@ -1,4 +1,5 @@
 assets 
+_devresources
 .venv
 __pycache__
 .pytest_cache
