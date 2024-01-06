@@ -72,8 +72,3 @@ class CoinGeckoAPI:
                 existing_asset_id = None 
             else:
                 existing_asset_id = self.original_state.marketchart_state.asset_id
-        
-
-
-
-
