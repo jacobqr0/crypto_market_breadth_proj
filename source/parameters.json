@@ -6,7 +6,9 @@
     },
 
     "marketchart": {
-        "vs_currency": "usd"
+        "vs_currency": "usd",
+        "initial_query_from": 1739340000,
+        "query_to": 1754888400
     }
 
 }
