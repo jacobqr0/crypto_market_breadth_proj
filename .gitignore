@@ -4,3 +4,6 @@ _devresources
 __pycache__
 .pytest_cache
 .DS_Store
+.cursor/
+*.duckdb
+*.duckdb.wal
