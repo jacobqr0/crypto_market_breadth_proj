@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "agent_name": "qa_risk",
+    "schema_version": "1.0",
+    "as_of_timestamp_utc": "2026-01-18T12:00:00Z",
+    "data_quality": "ok",
+    "warnings": []
+  },
+  "overall_status": "pass",
+  "recommendations_reviewed": 1,
+  "issues_found": 0,
+  "compliance_checklist": [
+    {
+      "check": "data_quality",
+      "status": "PASS",
+      "notes": "Good"
+    },
+    {
+      "check": "assets_top_200",
+      "status": "\u2713",
+      "notes": "All OK"
+    },
+    {
+      "check": "leverage",
+      "status": "n/a",
+      "notes": "Not applicable to this portfolio"
+    }
+  ],
+  "per_recommendation": [
+    {
+      "symbol": "ETH",
+      "original_action": "watch",
+      "qa_status": "pass",
+      "issues": [],
+      "risk": {
+        "correlation_with_portfolio": "low",
+        "sector_concentration": "OK",
+        "conviction": "high"
+      },
+      "verdict": "proceed"
+    }
+  ],
+  "final_verdict": "All checks passed"
+}

@@ -5,7 +5,9 @@ This module provides a DuckDBStore class that handles all database operations
 including schema initialization, state management, and market data storage.
 """
 
-import duckdb
+import os
+import sys
+import types
 import logging
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Any
@@ -14,6 +16,16 @@ from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
 
+# Avoid importing pandas during tests when numpy is unstable.
+# DuckDB will treat pandas as unavailable when the stub is present.
+if os.environ.get("DUCKDB_SKIP_PANDAS_IMPORT") == "1" and "pandas" not in sys.modules:
+    pandas_stub = types.ModuleType("pandas")
+    pandas_stub.__version__ = "0.0"
+    pandas_stub.DataFrame = type("DataFrame", (), {})
+    pandas_stub.Series = type("Series", (), {})
+    sys.modules["pandas"] = pandas_stub
+
+import duckdb
 
 @dataclass
 class AssetMetadata:
@@ -42,6 +54,9 @@ class IngestionState:
     current_endpoint: Optional[str]
     last_updated_ts: Optional[datetime]
     run_status: str  # 'idle' | 'running' | 'rate_limited' | 'error'
+    coinmarkets_current_page: Optional[int] = None
+    coinmarkets_total_pages: Optional[int] = None
+    coinmarkets_completed_pages: Optional[str] = None
 
 
 class DuckDBStore:
@@ -76,7 +91,10 @@ class DuckDBStore:
                 id INTEGER PRIMARY KEY DEFAULT 1,
                 current_endpoint VARCHAR,
                 last_updated_ts TIMESTAMP,
-                run_status VARCHAR DEFAULT 'idle'
+                run_status VARCHAR DEFAULT 'idle',
+                coinmarkets_current_page INTEGER,
+                coinmarkets_total_pages INTEGER,
+                coinmarkets_completed_pages VARCHAR
             )
         """)
         
@@ -86,6 +104,25 @@ class DuckDBStore:
             SELECT 1, 'idle'
             WHERE NOT EXISTS (SELECT 1 FROM ingestion_state WHERE id = 1)
         """)
+        
+        # Add new columns if they don't exist (for existing databases)
+        # Note: New databases will have these columns from CREATE TABLE above
+        # For existing databases, we attempt to add columns (will fail silently if they exist)
+        try:
+            # Check if table exists and get current columns
+            table_info = self.conn.execute("DESCRIBE ingestion_state").fetchall()
+            existing_columns = [row[0] for row in table_info]
+            
+            if "coinmarkets_current_page" not in existing_columns:
+                self.conn.execute("ALTER TABLE ingestion_state ADD COLUMN coinmarkets_current_page INTEGER")
+            if "coinmarkets_total_pages" not in existing_columns:
+                self.conn.execute("ALTER TABLE ingestion_state ADD COLUMN coinmarkets_total_pages INTEGER")
+            if "coinmarkets_completed_pages" not in existing_columns:
+                self.conn.execute("ALTER TABLE ingestion_state ADD COLUMN coinmarkets_completed_pages VARCHAR")
+        except Exception:
+            # Table may not exist yet (will be created with full schema) or columns already exist
+            # This is fine - new tables get full schema, existing tables may need manual migration
+            pass
         
         # Asset metadata table
         self.conn.execute("""
@@ -137,6 +174,76 @@ class DuckDBStore:
             ON asset_metadata(market_cap_rank)
         """)
         
+        # ==================== Agent System Tables ====================
+        
+        # Audit table for investment reports (core crew)
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS audit_investment_report (
+                report_id VARCHAR PRIMARY KEY,
+                report_path VARCHAR NOT NULL,
+                created_at TIMESTAMP NOT NULL,
+                token_research_prompt_version VARCHAR,
+                token_screener_prompt_version VARCHAR,
+                fundamentals_analyst_prompt_version VARCHAR,
+                research_synthesizer_prompt_version VARCHAR,
+                technical_analyst_prompt_version VARCHAR,
+                macro_cycle_prompt_version VARCHAR,
+                portfolio_context_prompt_version VARCHAR,
+                orchestrator_prompt_version VARCHAR,
+                qa_risk_prompt_version VARCHAR
+            )
+        """)
+        
+        # Add new columns if they don't exist (for existing databases)
+        # Note: New databases will have these columns from CREATE TABLE above
+        # For existing databases, we attempt to add columns (will fail silently if they exist)
+        try:
+            # Check if table exists and get current columns
+            table_info = self.conn.execute("DESCRIBE audit_investment_report").fetchall()
+            existing_columns = [row[0] for row in table_info]
+            
+            if "token_screener_prompt_version" not in existing_columns:
+                self.conn.execute("ALTER TABLE audit_investment_report ADD COLUMN token_screener_prompt_version VARCHAR")
+            if "fundamentals_analyst_prompt_version" not in existing_columns:
+                self.conn.execute("ALTER TABLE audit_investment_report ADD COLUMN fundamentals_analyst_prompt_version VARCHAR")
+            if "research_synthesizer_prompt_version" not in existing_columns:
+                self.conn.execute("ALTER TABLE audit_investment_report ADD COLUMN research_synthesizer_prompt_version VARCHAR")
+        except Exception:
+            # Table may not exist yet (will be created with full schema) or columns already exist
+            # This is fine - new tables get full schema, existing tables may need manual migration
+            pass
+        
+        # Audit table for meta-learning reports (Post-Mortem Architect)
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS audit_meta_learning_report (
+                report_id VARCHAR PRIMARY KEY,
+                report_path VARCHAR NOT NULL,
+                created_at TIMESTAMP NOT NULL,
+                post_mortem_prompt_version VARCHAR,
+                analysis_period_start TIMESTAMP,
+                analysis_period_end TIMESTAMP,
+                investment_reports_analyzed INTEGER
+            )
+        """)
+        
+        # Technical indicators cache for agent analysis
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS technical_indicators_cache (
+                asset_id VARCHAR,
+                indicator_name VARCHAR,
+                timestamp_unix BIGINT,
+                value DOUBLE,
+                computed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (asset_id, indicator_name, timestamp_unix)
+            )
+        """)
+        
+        # Index for efficient indicator lookups
+        self.conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_indicators_asset_name 
+            ON technical_indicators_cache(asset_id, indicator_name)
+        """)
+        
         logger.info("DuckDB schema initialized successfully")
     
     def close(self):
@@ -169,7 +276,8 @@ class DuckDBStore:
     def get_ingestion_state(self) -> IngestionState:
         """Get current ingestion state."""
         result = self.conn.execute("""
-            SELECT current_endpoint, last_updated_ts, run_status
+            SELECT current_endpoint, last_updated_ts, run_status,
+                   coinmarkets_current_page, coinmarkets_total_pages, coinmarkets_completed_pages
             FROM ingestion_state
             WHERE id = 1
         """).fetchone()
@@ -178,20 +286,29 @@ class DuckDBStore:
             return IngestionState(
                 current_endpoint=result[0],
                 last_updated_ts=result[1],
-                run_status=result[2] or self.RUN_STATUS_IDLE
+                run_status=result[2] or self.RUN_STATUS_IDLE,
+                coinmarkets_current_page=result[3],
+                coinmarkets_total_pages=result[4],
+                coinmarkets_completed_pages=result[5]
             )
-        return IngestionState(None, None, self.RUN_STATUS_IDLE)
+        return IngestionState(None, None, self.RUN_STATUS_IDLE, None, None, None)
     
     def update_ingestion_state(
         self,
         current_endpoint: Optional[str] = None,
-        run_status: Optional[str] = None
+        run_status: Optional[str] = None,
+        coinmarkets_current_page: Optional[int] = None,
+        coinmarkets_total_pages: Optional[int] = None,
+        coinmarkets_completed_pages: Optional[str] = None
     ):
         """
         Update global ingestion state.
         
         :param current_endpoint: Current API endpoint being processed
         :param run_status: Current run status
+        :param coinmarkets_current_page: Current page being fetched (1 or 2)
+        :param coinmarkets_total_pages: Total pages expected (2)
+        :param coinmarkets_completed_pages: JSON array of completed pages (e.g., "[1]" or "[1,2]")
         """
         updates = ["last_updated_ts = ?"]
         params = [datetime.now()]
@@ -204,8 +321,35 @@ class DuckDBStore:
             updates.append("run_status = ?")
             params.append(run_status)
         
+        if coinmarkets_current_page is not None:
+            updates.append("coinmarkets_current_page = ?")
+            params.append(coinmarkets_current_page)
+        
+        if coinmarkets_total_pages is not None:
+            updates.append("coinmarkets_total_pages = ?")
+            params.append(coinmarkets_total_pages)
+        
+        if coinmarkets_completed_pages is not None:
+            updates.append("coinmarkets_completed_pages = ?")
+            params.append(coinmarkets_completed_pages)
+        
         query = f"UPDATE ingestion_state SET {', '.join(updates)} WHERE id = 1"
         self.conn.execute(query, params)
+
+    def clear_pagination_state(self):
+        """
+        Clear coinmarkets pagination state fields.
+        
+        This explicitly sets pagination-related columns to NULL.
+        """
+        self.conn.execute("""
+            UPDATE ingestion_state
+            SET coinmarkets_current_page = NULL,
+                coinmarkets_total_pages = NULL,
+                coinmarkets_completed_pages = NULL,
+                last_updated_ts = ?
+            WHERE id = 1
+        """, [datetime.now()])
     
     def is_initial_run(self) -> bool:
         """Check if this is the first run (no assets in database)."""
@@ -269,6 +413,70 @@ class DuckDBStore:
             SELECT asset_id FROM asset_metadata
         """).fetchall()
         return [row[0] for row in result]
+    
+    def get_asset_metadata(self, asset_id: str) -> Optional[AssetMetadata]:
+        """
+        Get metadata for a specific asset.
+        
+        :param asset_id: Asset identifier
+        :return: AssetMetadata or None if not found
+        """
+        result = self.conn.execute("""
+            SELECT asset_id, symbol, name, market_cap_rank, first_seen_ts, last_updated_ts
+            FROM asset_metadata
+            WHERE asset_id = ?
+        """, [asset_id]).fetchone()
+        
+        if result:
+            return AssetMetadata(
+                asset_id=result[0],
+                symbol=result[1],
+                name=result[2],
+                market_cap_rank=result[3],
+                first_seen_ts=result[4],
+                last_updated_ts=result[5]
+            )
+        return None
+    
+    def mark_assets_dropped_from_top_list(self, current_top_asset_ids: List[str]):
+        """
+        Mark assets that are no longer in the current top list.
+        
+        Sets market_cap_rank to NULL and updates last_updated_ts for assets
+        that have been previously tracked but are no longer in the top list.
+        This ensures:
+        1. No duplicate market_cap_rank values
+        2. Dropped assets still get their metadata updated
+        
+        :param current_top_asset_ids: List of asset IDs currently in the top list
+        """
+        if not current_top_asset_ids:
+            return
+        
+        now = datetime.now()
+        
+        # Get all tracked assets (those with ingestion state)
+        all_tracked = self.conn.execute("""
+            SELECT DISTINCT asset_id FROM asset_ingestion_state
+        """).fetchall()
+        all_tracked_ids = set(row[0] for row in all_tracked)
+        
+        current_top_set = set(current_top_asset_ids)
+        dropped_assets = all_tracked_ids - current_top_set
+        
+        if not dropped_assets:
+            return
+        
+        # Update dropped assets: set market_cap_rank to NULL and update timestamp
+        for asset_id in dropped_assets:
+            self.conn.execute("""
+                UPDATE asset_metadata
+                SET market_cap_rank = NULL,
+                    last_updated_ts = ?
+                WHERE asset_id = ?
+            """, [now, asset_id])
+        
+        logger.info(f"Marked {len(dropped_assets)} assets as dropped from top list")
     
     # ==================== Asset Ingestion State Operations ====================
     
@@ -373,6 +581,21 @@ class DuckDBStore:
         result = self.conn.execute("""
             SELECT asset_id FROM asset_ingestion_state
             WHERE last_collected_unix_ts IS NOT NULL
+        """).fetchall()
+        return [row[0] for row in result]
+    
+    def get_assets_with_ingestion_state(self) -> List[str]:
+        """
+        Get all asset IDs that have an entry in asset_ingestion_state.
+        
+        This includes both assets that have been fetched and those that
+        have been initialized but not yet fetched. Use this method to
+        determine which assets need to have their ingestion state initialized.
+        
+        :return: List of asset IDs with ingestion state entries
+        """
+        result = self.conn.execute("""
+            SELECT asset_id FROM asset_ingestion_state
         """).fetchall()
         return [row[0] for row in result]
     

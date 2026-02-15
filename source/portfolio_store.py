@@ -163,21 +163,34 @@ class PortfolioStore:
             positions = store.get_open_positions()
         finally:
             store.close()
+        
+        # Or with external connection (for shared connection scenarios):
+        store = PortfolioStore(connection=shared_conn)
     """
     
-    def __init__(self, db_path: str = "market_data.duckdb"):
+    def __init__(self, db_path: str = "market_data.duckdb", connection: Optional[duckdb.DuckDBPyConnection] = None):
         """
         Initialize DuckDB connection and create schema.
         
         :param db_path: Path to DuckDB database file. Use ':memory:' for in-memory DB.
+                        Ignored if connection is provided.
+        :param connection: Optional external DuckDB connection. If provided, the store
+                          will use this connection instead of creating its own.
+                          The caller is responsible for closing external connections.
         
         Side Effects:
-            - Creates database file if it doesn't exist
+            - Creates database file if it doesn't exist (unless connection provided)
             - Creates positions and trades tables if they don't exist
             - Creates indexes for query optimization
         """
         self.db_path = db_path
-        self.conn = duckdb.connect(db_path)
+        self._owns_connection = connection is None
+        
+        if connection is not None:
+            self.conn = connection
+        else:
+            self.conn = duckdb.connect(db_path)
+        
         self._initialize_schema()
     
     def _initialize_schema(self):
@@ -248,8 +261,11 @@ class PortfolioStore:
         
         Always call this when done with the store to release resources.
         After closing, the store instance should not be reused.
+        
+        Note: If an external connection was provided during initialization,
+        this method will NOT close it (the caller owns that connection).
         """
-        if self.conn:
+        if self.conn and self._owns_connection:
             self.conn.close()
             self.conn = None
     

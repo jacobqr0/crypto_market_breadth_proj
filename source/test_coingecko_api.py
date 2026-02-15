@@ -1,7 +1,11 @@
 import pytest 
 from unittest.mock import Mock
 import requests
-from coingecko_api import CoinGeckoAPI
+
+try:
+    from .coingecko_api import CoinGeckoAPI
+except ImportError:
+    from coingecko_api import CoinGeckoAPI
 from typing import Optional, List, Dict
 
 BASIC_PARAMETERS = {
@@ -78,6 +82,188 @@ def test_build_api_multiple_states(input_api: Optional[str], assets: Optional[Li
     actual_endpoint = api.build_api()
     
     assert actual_endpoint == expected_endpoint
+
+
+def test_build_api_with_page_parameter():
+    """Test that page parameter is correctly included in endpoint URL."""
+    state = {
+        "api": None,
+        "marketchart_state": {
+            "already_fetched": {},
+            "to_query_asset_id": None
+        }
+    }
+    
+    secrets_with_page = {
+        "base_url": "https://api.coingecko.com/api/v3/",
+        "parameters": {
+            "coinmarkets": {
+                "vs_currency": "usd",
+                "order": "market_cap_desc",
+                "per_page": "250",
+                "page": "2"
+            },
+            "marketchart": {
+                "vs_currency": "usd",
+                "initial_query_from": 1739340000,
+                "query_to": 1754888400
+            }
+        }
+    }
+    
+    api = CoinGeckoAPI(state, secrets_with_page)
+    endpoint = api.build_api()
+    
+    assert "&page=2" in endpoint
+    assert "per_page=250" in endpoint
+
+
+def test_build_api_defaults_to_page_1():
+    """Test that page defaults to 1 if not specified."""
+    state = {
+        "api": None,
+        "marketchart_state": {
+            "already_fetched": {},
+            "to_query_asset_id": None
+        }
+    }
+    
+    secrets_no_page = {
+        "base_url": "https://api.coingecko.com/api/v3/",
+        "parameters": {
+            "coinmarkets": {
+                "vs_currency": "usd",
+                "order": "market_cap_desc",
+                "per_page": "250"
+                # page not specified
+            },
+            "marketchart": {
+                "vs_currency": "usd",
+                "initial_query_from": 1739340000,
+                "query_to": 1754888400
+            }
+        }
+    }
+    
+    api = CoinGeckoAPI(state, secrets_no_page)
+    endpoint = api.build_api()
+    
+    assert "&page=1" in endpoint
+
+
+def test_build_api_page2_with_per_page_250_for_350_tokens():
+    """
+    Test that page 2 with per_page=250 generates correct endpoint URL.
+    
+    This tests the correct pagination approach for fetching top 350 tokens:
+    - Page 1: per_page=250 → tokens 1-250
+    - Page 2: per_page=250 → tokens 251-500 (caller slices to get 251-350)
+    
+    Note: Using per_page=100 with page=2 would incorrectly return tokens 101-200.
+    """
+    state = {
+        "api": None,
+        "marketchart_state": {
+            "already_fetched": {},
+            "to_query_asset_id": None
+        }
+    }
+    
+    # Configuration for fetching page 2 with per_page=250
+    secrets_page2 = {
+        "base_url": "https://pro-api.coingecko.com/api/v3/",
+        "parameters": {
+            "coinmarkets": {
+                "vs_currency": "usd",
+                "order": "market_cap_desc",
+                "per_page": "250",
+                "page": "2"
+            },
+            "marketchart": {
+                "vs_currency": "usd",
+                "initial_query_from": 1739340000,
+                "query_to": 1754888400
+            }
+        }
+    }
+    
+    api = CoinGeckoAPI(state, secrets_page2)
+    endpoint = api.build_api()
+    
+    # Verify page 2 is specified
+    assert "&page=2" in endpoint
+    # Verify per_page=250 is used (not 100)
+    assert "per_page=250" in endpoint
+    # Verify PRO API URL is used
+    assert "pro-api.coingecko.com" in endpoint
+    # Verify it's the coins/markets endpoint
+    assert "coins/markets?" in endpoint
+
+
+def test_build_api_page1_and_page2_both_use_per_page_250():
+    """
+    Test that both page 1 and page 2 use per_page=250 for consistent pagination.
+    
+    This verifies the correct approach for fetching top 350 tokens:
+    - CoinGecko pagination: (page-1)*per_page+1 to page*per_page
+    - Page 1 with per_page=250: tokens 1-250
+    - Page 2 with per_page=250: tokens 251-500
+    """
+    state = {
+        "api": None,
+        "marketchart_state": {
+            "already_fetched": {},
+            "to_query_asset_id": None
+        }
+    }
+    
+    # Test page 1
+    secrets_page1 = {
+        "base_url": "https://pro-api.coingecko.com/api/v3/",
+        "parameters": {
+            "coinmarkets": {
+                "vs_currency": "usd",
+                "order": "market_cap_desc",
+                "per_page": "250",
+                "page": "1"
+            },
+            "marketchart": {
+                "vs_currency": "usd",
+                "initial_query_from": 1739340000,
+                "query_to": 1754888400
+            }
+        }
+    }
+    
+    api1 = CoinGeckoAPI(state, secrets_page1)
+    endpoint1 = api1.build_api()
+    
+    assert "&page=1" in endpoint1
+    assert "per_page=250" in endpoint1
+    
+    # Test page 2 - must also use per_page=250
+    secrets_page2 = {
+        "base_url": "https://pro-api.coingecko.com/api/v3/",
+        "parameters": {
+            "coinmarkets": {
+                "vs_currency": "usd",
+                "order": "market_cap_desc",
+                "per_page": "250",
+                "page": "2"
+            },
+            "marketchart": {
+                "vs_currency": "usd",
+                "initial_query_from": 1739340000,
+                "query_to": 1754888400
+            }
+        }
+    }
+    
+    api2 = CoinGeckoAPI(state, secrets_page2)
+    endpoint2 = api2.build_api()
+    
+    assert "&page=2" in endpoint2
+    assert "per_page=250" in endpoint2
 
 
 # ==================== Tests for build_response() ====================

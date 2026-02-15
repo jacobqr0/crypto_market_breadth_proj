@@ -1,7 +1,23 @@
+# Core dependencies
 dacite
 requests
 numpy
 pandas
+scipy>=1.10.0
 ipykernel
+ipywidgets>=8.0.0
+nbformat>=4.2.0
 tqdm
 duckdb
+plotly>=5.0.0
+
+# CrewAI Multi-Agent System
+crewai>=0.30.0
+crewai-tools>=0.4.0
+openai>=1.0.0
+
+# Configuration parsing
+pyyaml>=6.0
+
+# Schema validation
+pydantic>=2.0.0

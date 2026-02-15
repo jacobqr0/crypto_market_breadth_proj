@@ -1,0 +1,247 @@
+{
+  "meta": {
+    "agent_name": "token_research",
+    "schema_version": "1.0",
+    "as_of_timestamp_utc": "2026-01-19T10:00:00Z",
+    "data_quality": "ok",
+    "warnings": []
+  },
+  "universe": {
+    "constraints": {
+      "max_mcap_rank": 200,
+      "exclude_memecoins": true
+    }
+  },
+  "candidates": [
+    {
+      "symbol": "ETH",
+      "name": "Ethereum",
+      "mcap_rank": 2,
+      "category": "L1",
+      "thesis": {
+        "problem": "Provides a decentralized platform for applications and smart contracts.",
+        "why_it_wins": "Largest developer community and established DeFi leadership.",
+        "network_effects": "DeFi and NFT ecosystem create robust network effects."
+      },
+      "adoption_metrics": {
+        "tvl_usd": 99000000000,
+        "tvl_change_90d_pct": 15.5,
+        "fees_30d_usd": 650000000,
+        "revenue_30d_usd": 50000000,
+        "dau": 500000,
+        "tx_count_30d": null
+      },
+      "catalysts": [
+        "Staking dominance",
+        "Innovation in layer-2 solutions"
+      ],
+      "risks": [
+        "Scalability issues",
+        "Technical vulnerabilities"
+      ],
+      "sources": [
+        {
+          "name": "AInvest News",
+          "type": "article",
+          "ref": "https://www.ainvest.com/news/ethereum-path-4-000-chain-metrics-signal-breakout-2026-2601/"
+        }
+      ],
+      "tier_suggestion": 1,
+      "confidence": "high"
+    },
+    {
+      "symbol": "BNB",
+      "name": "BNB",
+      "mcap_rank": 4,
+      "category": "Exchange Token",
+      "thesis": {
+        "problem": "High transaction costs and centralization in financial services.",
+        "why_it_wins": "Integrated in Binance's vast ecosystem, offering utility and discounts.",
+        "network_effects": "Strong incentive structure for holders and platform users."
+      },
+      "adoption_metrics": {
+        "tvl_usd": null,
+        "tvl_change_90d_pct": 40.5,
+        "fees_30d_usd": null,
+        "revenue_30d_usd": null,
+        "dau": 4320000,
+        "tx_count_30d": 31000000
+      },
+      "catalysts": [
+        "Continual ecosystem expansion",
+        "Strategic partnerships"
+      ],
+      "risks": [
+        "Regulatory challenges",
+        "Binance exchange's market volatility"
+      ],
+      "sources": [
+        {
+          "name": "Binance Blog",
+          "type": "analysis",
+          "ref": "https://www.binance.com/en-AE/square/post/35141777087257"
+        }
+      ],
+      "tier_suggestion": 1,
+      "confidence": "high"
+    },
+    {
+      "symbol": "SOL",
+      "name": "Solana",
+      "mcap_rank": 6,
+      "category": "L1",
+      "thesis": {
+        "problem": "Scalability and high transaction costs in blockchain networks.",
+        "why_it_wins": "High throughput and low cost make it ideal for dApps and games.",
+        "network_effects": "Rapidly growing ecosystem with DeFi and NFT interest."
+      },
+      "adoption_metrics": {
+        "tvl_usd": 8000000000,
+        "tvl_change_90d_pct": 20.0,
+        "fees_30d_usd": 650000000,
+        "revenue_30d_usd": null,
+        "dau": 3250000,
+        "tx_count_30d": 3500000000
+      },
+      "catalysts": [
+        "Recent upgrades and partnerships",
+        "Expanding dApp ecosystem"
+      ],
+      "risks": [
+        "Network outages",
+        "Centralization concerns"
+      ],
+      "sources": [
+        {
+          "name": "Messari",
+          "type": "report",
+          "ref": "https://messari.io/newsletter/unqualified-opinions/ethereum-s-2026-setup-undervalued-strengthening-and-gaining-share"
+        }
+      ],
+      "tier_suggestion": 1,
+      "confidence": "high"
+    },
+    {
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "mcap_rank": 1,
+      "category": "Store of Value",
+      "thesis": {
+        "problem": "Lack of decentralized alternatives to traditional financial systems.",
+        "why_it_wins": "Established trust and security as the foremost cryptocurrency.",
+        "network_effects": "Most recognized crypto with robust infrastructure support."
+      },
+      "adoption_metrics": {
+        "tvl_usd": null,
+        "tvl_change_90d_pct": null,
+        "fees_30d_usd": 15180000,
+        "revenue_30d_usd": null,
+        "dau": 25652,
+        "tx_count_30d": null
+      },
+      "catalysts": [
+        "Growing institutional adoption",
+        "Regulation clarity in key markets"
+      ],
+      "risks": [
+        "Regulatory pressure worldwide",
+        "Market volatility"
+      ],
+      "sources": [
+        {
+          "name": "Amberdata",
+          "type": "blog",
+          "ref": "https://blog.amberdata.io/crypto-markets-in-early-2026-rally-builds-as-etf-flows-return"
+        }
+      ],
+      "tier_suggestion": 1,
+      "confidence": "high"
+    },
+    {
+      "symbol": "USDC",
+      "name": "USD Coin",
+      "mcap_rank": 7,
+      "category": "Stablecoin",
+      "thesis": {
+        "problem": "Need for reliable crypto equivalent of fiat currencies.",
+        "why_it_wins": "Strong regulatory compliance and backing by major institutions.",
+        "network_effects": "Wide adoption across crypto exchanges and DeFi applications."
+      },
+      "adoption_metrics": {
+        "tvl_usd": null,
+        "tvl_change_90d_pct": null,
+        "fees_30d_usd": null,
+        "revenue_30d_usd": null,
+        "dau": null,
+        "tx_count_30d": null
+      },
+      "catalysts": [
+        "Increasing demand for stablecoins in volatile markets"
+      ],
+      "risks": [
+        "Regulatory changes affecting stablecoin guidelines"
+      ],
+      "sources": [
+        {
+          "name": "Chainlink",
+          "type": "education hub",
+          "ref": "https://chain.link/education-hub/stablecoins"
+        }
+      ],
+      "tier_suggestion": 1,
+      "confidence": "high"
+    }
+  ],
+  "ranked_shortlist": [
+    {
+      "symbol": "ETH",
+      "score": 8.6,
+      "score_breakdown": {
+        "adoption": 9.0,
+        "moat": 8.5,
+        "catalyst": 8.0,
+        "risk": 8.0
+      }
+    },
+    {
+      "symbol": "BNB",
+      "score": 8.4,
+      "score_breakdown": {
+        "adoption": 8.5,
+        "moat": 8.5,
+        "catalyst": 8.0,
+        "risk": 8.0
+      }
+    },
+    {
+      "symbol": "SOL",
+      "score": 8.2,
+      "score_breakdown": {
+        "adoption": 8.7,
+        "moat": 8.0,
+        "catalyst": 8.5,
+        "risk": 7.5
+      }
+    },
+    {
+      "symbol": "BTC",
+      "score": 8.0,
+      "score_breakdown": {
+        "adoption": 8.0,
+        "moat": 9.0,
+        "catalyst": 8.0,
+        "risk": 7.0
+      }
+    },
+    {
+      "symbol": "USDC",
+      "score": 7.8,
+      "score_breakdown": {
+        "adoption": 7.5,
+        "moat": 8.0,
+        "catalyst": 7.5,
+        "risk": 7.5
+      }
+    }
+  ]
+}

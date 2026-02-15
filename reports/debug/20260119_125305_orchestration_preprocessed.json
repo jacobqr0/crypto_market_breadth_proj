@@ -1,0 +1,78 @@
+{
+  "meta": {
+    "agent_name": "orchestrator",
+    "schema_version": "4.0",
+    "as_of_timestamp_utc": "2023-09-30T12:00:00Z",
+    "data_quality": "partial",
+    "warnings": []
+  },
+  "executive_summary": "Given the current allocation entirely in BTC, a shift is recommended towards adding Ethereum (ETH) due to favorable market conditions and ETH's strong standing.",
+  "market_context": {
+    "macro_regime": "risk_on",
+    "technical_env": "bullish",
+    "key_considerations": [
+      "Global liquidity is expanding",
+      "Fed adopted a dovish stance",
+      "Inflation trends support risk assets"
+    ]
+  },
+  "recommendations": [
+    {
+      "symbol": "ETH",
+      "action": "buy",
+      "conviction": "high",
+      "tier": 1,
+      "suggested_allocation_pct_portfolio": 15.0,
+      "suggested_allocation_pct_monthly_budget": 50.0,
+      "time_horizon": "6-12m",
+      "rationale_one_liner": "ETH offers strong utility and network effects, with catalysts for growth, suitable in a risk-on environment.",
+      "rubric": {
+        "problem_solved": "Ethereum provides a decentralized platform for executing smart contracts and running decentralized applications.",
+        "network_effects": "Large ecosystem of developers and applications bolstering its network effects.",
+        "why_now": "Favorable macro environment and positive technicals for ETH as supported by catalyst-driven momentum.",
+        "invalidation": "A significant loss of network security or a massive shift in developer support.",
+        "vs_doing_nothing": "Potential for higher returns than holding only BTC in a risk-on market.",
+        "downside_risks": "Scalability issues and increased competition from other L1s.",
+        "portfolio_fit": "Core Tier 1 holding adding diversity to the current all-BTC portfolio.",
+        "exit_criteria": "Sell if network security compromised or if high competition exceeds Ethereum's adaptability."
+      },
+      "trading_plan": {
+        "entry_strategy": "Buy at current market price or upon pullback to $2,500-$2,700 for optimization.",
+        "position_size": "15% of portfolio (~$660 based on $4,372 portfolio) within compliance limits.",
+        "take_profit_targets": [
+          {
+            "target": "$3,000 (20% above entry)",
+            "sell_pct": 50
+          },
+          {
+            "target": "$3,500 (40% above entry)",
+            "sell_pct": 50
+          }
+        ],
+        "stop_loss": "Close below $2,200 (-15% from entry).",
+        "invalidation_trigger": "Emergence of critical bugs or network breaches not immediately addressed."
+      },
+      "evidence_refs": [
+        "token_research.candidates.ETH",
+        "macro_cycle.regime"
+      ],
+      "prerequisites": [
+        "Macro environment remains favorable",
+        "No significant emergence of L1 competition"
+      ],
+      "dependencies": {
+        "requires": [
+          "Fully risk-on macro environment"
+        ],
+        "data_used": [
+          "macro_cycle.regime",
+          "token_research.candidates.ETH"
+        ]
+      }
+    }
+  ],
+  "default_recommendation": {
+    "action": "hold_btc",
+    "reason": "Insufficient high-conviction opportunities outside ETH under current portfolio constraints."
+  }
+}

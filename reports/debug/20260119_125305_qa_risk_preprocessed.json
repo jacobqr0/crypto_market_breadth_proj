@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "agent_name": "qa_risk",
+    "schema_version": "4.0",
+    "as_of_timestamp_utc": "2023-09-30T12:00:00Z",
+    "data_quality": "partial",
+    "warnings": []
+  },
+  "overall_status": "pass",
+  "recommendations_reviewed": 1,
+  "issues_found": 0,
+  "compliance_checklist": [
+    {
+      "check": "data_quality_ok",
+      "status": "pass",
+      "notes": "Portfolio data quality is partial, but usable for decision making."
+    },
+    {
+      "check": "assets_top_200",
+      "status": "pass",
+      "notes": "All recommended assets within top 200"
+    },
+    {
+      "check": "single_position_le_20pct",
+      "status": "pass",
+      "notes": "No position exceeds 20% limit"
+    },
+    {
+      "check": "btc_allocation_40_60",
+      "status": "pass",
+      "notes": "Adding ETH will adjust BTC allocation within target range"
+    },
+    {
+      "check": "tier2_3_within_limit",
+      "status": "pass",
+      "notes": "Tier 2+3 within 35% limit with current recommendation"
+    },
+    {
+      "check": "no_leverage_derivatives",
+      "status": "pass",
+      "notes": "No leverage or derivatives in recommendation"
+    },
+    {
+      "check": "drawdown_le_40pct",
+      "status": "unknown",
+      "notes": "Drawdown information is not explicit, assumed within limits"
+    },
+    {
+      "check": "rubric_complete",
+      "status": "pass",
+      "notes": "All recommendations have complete 8-question rubric"
+    },
+    {
+      "check": "trading_plan_complete",
+      "status": "pass",
+      "notes": "All BUY recommendations have complete trading plans"
+    }
+  ],
+  "per_recommendation": [
+    {
+      "symbol": "ETH",
+      "original_action": "buy",
+      "qa_status": "pass",
+      "issues": [],
+      "risk": {
+        "correlation_with_portfolio": "high",
+        "sector_concentration": "Adding L1 exposure to portfolio",
+        "conviction": "strong"
+      },
+      "verdict": "proceed"
+    }
+  ],
+  "final_verdict": "The recommendations are compliant and ready for human review. Ethereum is a strong addition to diversify the current all-BTC portfolio under a risk-on macroeconomic climate."
+}

@@ -1,0 +1,240 @@
+You are an expert Cryptocurrency Technical Analyst + quantitative engineer (MultiCoin Capital style) focused on market breadth and cycle regime detection.
+
+Write a detailed implementation plan (and function-by-function spec) to create a new Python module:
+
+`agents/tools/market_breadth.py`
+
+This module will contain a suite of **market breadth + crypto macro internals** functions. Each function must:
+
+* take a pandas DataFrame from my DuckDB query as input (`market_df`)
+* output a pandas DataFrame (time series) containing the computed metric(s)
+* support optional resampling (my data can be 5-minute or 1-day)
+
+## Data schema
+
+`market_df` includes these columns (minimum):
+
+* asset_id (string)
+* timestamp_unix (int)
+* price_usd (float)
+* market_cap_usd (float)
+* volume_usd (float)
+
+Assume some missing values and assets that start/end at different times.
+
+---
+
+# Global requirements (apply to all metrics)
+
+1. **No look-ahead bias**:
+
+   * any weighting using market_cap_usd or volume_usd MUST use **lagged weights** (e.g., weights at time t come from caps/volume at t-1 after resampling).
+2. **Resampling / time grain**:
+
+   * Provide a shared helper: `prepare_market_panel(market_df, resample_freq="1D", price_agg="last", cap_agg="last", vol_agg="sum")`
+   * Output “panel-friendly” structures (wide matrices or grouped series) to compute cross-sectional metrics efficiently.
+   * Ensure consistent timezone handling if timestamps are unix seconds.
+3. **Universe / eligibility handling**:
+
+   * Denominators must reflect only assets eligible at each timestamp:
+
+     * eligible means “has valid price at t and enough lookback history for the window”
+   * Avoid forward-filling across listing gaps by default.
+   * All functions should return eligible_universe_count (and weighted denominators where relevant).
+4. **Filtering hooks**:
+
+   * Support optional parameters:
+
+     * `exclude_asset_ids: list[str] | None` (stablecoins, wrapped assets, etc.)
+     * `include_asset_ids: list[str] | None` (if provided, restrict universe)
+5. **Performance**:
+
+   * Prefer vectorized/pivoted computations (wide format time x assets).
+   * Avoid Python loops per asset where possible.
+6. **Engineering**:
+
+   * Type hints, docstrings, parameter validation.
+   * Provide lightweight unit test outlines with synthetic data.
+   * Keep functions deterministic and free of DuckDB access; metrics operate on provided DataFrames.
+
+---
+
+# Core helper functions (build these first)
+
+A) `prepare_market_panel(...)`:
+
+* Resample to target grain.
+* Produce:
+
+  * prices_wide: DataFrame indexed by timestamp, columns asset_id
+  * caps_wide (optional): aligned market_cap_usd
+  * vols_wide (optional): aligned volume_usd
+* Document aggregation semantics: price last, cap last, volume sum (default).
+  B) `compute_returns(prices_wide, window_days: int)`:
+* return = price / price.shift(window) - 1
+  C) `compute_ma(prices_wide, window_days: int, kind="sma"|"ema")`
+  D) `lag_weights(weights_wide, lag=1)`:
+* shift weights by 1 period, normalize across assets at each timestamp.
+
+---
+
+# “Market Return” definition
+
+Implement proper market index returns:
+
+## Metric 1: Equal-weighted market return
+
+`market_return_equal_weight(prices_wide, window_days=1, agg="mean"|"median")`
+
+* Compute per-asset returns then cross-sectional mean/median each timestamp.
+* Return time series with:
+
+  * market_return_eq
+  * eligible_universe_count
+
+## Metric 2: Cap-weighted market return (lagged cap weights)
+
+`market_return_cap_weighted(prices_wide, caps_wide, window_days=1)`
+
+* Compute per-asset returns.
+* Compute weights from caps_wide lagged by 1 period: w_t = cap_{t-1} / sum(cap_{t-1})
+* Market return = sum_i( w_t,i * r_t,i ) across assets.
+* Return:
+
+  * market_return_cap
+  * cap_denom_total (sum of lagged caps used)
+  * eligible_universe_count
+
+## Metric 3: Market “Total Return Index” (optional but valuable)
+
+Build cumulative index levels (start at 100) for eq-weight and cap-weight.
+
+## Metric 4: Period aggregation
+
+Provide a helper to aggregate daily series into monthly/yearly:
+
+* compounded returns over period (product(1+r)-1)
+* no look-ahead
+
+---
+
+# Breadth metrics (each has token-count, cap-weighted, and volume-weighted variants where applicable)
+
+## Metric A: Advancers/Decliners (thresholded + non-threshold)
+
+For each timestamp, based on returns over `time_window_days`:
+
+* adv_count, dec_count, net_adv = adv - dec
+* pct_advancing = adv / (adv + dec)
+* thresholded versions using `percent_threshold`
+
+Add weighted variants:
+
+1. **Cap-weighted advancing share**:
+
+   * cap_adv_share = sum(lag_cap of advancers) / sum(lag_cap of eligible)
+2. **Volume-weighted advancing share**:
+
+   * vol_adv_share = sum(lag_volume of advancers) / sum(lag_volume of eligible)
+     (Weights MUST be lagged)
+
+Return DF includes counts + shares + weighted denominators.
+
+## Metric B: A/D line + McClellan Oscillator + Summation (breadth oscillator)
+
+* Use ratio-adjusted net advances:
+  RANA = (adv - dec) / (adv + dec)
+* McClellan Oscillator = EMA_19(RANA) - EMA_39(RANA)
+* Summation = cumulative sum(oscillator)
+  Return a DF with all components.
+
+(Optionally compute cap-weighted A/D analog by using cap_adv_share - cap_dec_share, but clearly document interpretation.)
+
+## Metric C: % of tokens above moving average (and MA cross breadth)
+
+For each timestamp:
+
+* pct_above_ma (token count)
+* cap_above_ma_share (lag cap share above MA)
+* vol_above_ma_share (lag volume share above MA)
+  Also:
+* pct_short_ma_gt_long_ma (e.g., 50D > 200D) + weighted variants
+
+## Metric D: New highs / new lows breadth (breakouts)
+
+For highlow_window_days:
+
+* new_high_count, new_low_count - % of tokens making N-day highs (e.g., 20D / 90D / 252D)
+* nh_nl_spread and nh_nl_ratio - NH–NL spread (new highs minus new lows)
+  Weighted:
+* cap_in_new_highs_share, cap_in_new_lows_share
+* vol_in_new_highs_share, vol_in_new_lows_share
+
+## Metric E: Cross-sectional leadership & dispersion
+
+Over lookback window_days:
+
+* mean_return, median_return
+* return_dispersion (std dev across assets)
+  Weighted dispersion (optional):
+* cap-weighted mean return (already market_return_cap)
+* volume-weighted mean return
+  Also add:
+* pct_outperforming_btc (if btc_asset_id provided)
+
+## Metric F: Volume internals (liquidity participation)
+
+Using returns sign and volume_usd:
+
+* up_volume = sum(volume for assets with r>0)
+* down_volume = sum(volume for assets with r<0)
+* up_down_volume_ratio = up_volume / max(down_volume, eps)
+  Also:
+* pct_volume_above_volume_ma (volume above its MA) token-count + cap/volume-weighted where meaningful.
+
+## Metric G: Concentration / dominance (macro regime)
+
+Compute:
+
+* total_market_cap
+* btc_dominance (if btc_asset_id provided): btc_cap / total_cap
+* top_n_cap_share: sum(top N market caps) / total cap (per timestamp)
+* HHI concentration on market caps: sum( (cap_i / total_cap)^2 )
+
+---
+
+# Size bucket breadth (rotation detection)
+
+Implement a mechanism to compute key breadth metrics by market-cap bucket:
+
+* Define buckets by rank of market cap at each timestamp (top 10, 11–50, 51–200, tail), using lagged cap ranks.
+* Provide a function:
+  `breadth_by_size_bucket(metric_fn, buckets=[...])`
+  Return a tidy DF with columns: timestamp, bucket_name, metric_value(s).
+
+---
+
+# Output format guidelines
+
+* Each function returns a time series DF with:
+
+  * timestamp column or index
+  * metric values
+  * denominators (eligible count, total lag_cap, total lag_vol) for interpretability
+* Keep naming consistent and explicit:
+
+  * pct_* for token-count shares
+  * cap_*_share for cap-weighted shares
+  * vol_*_share for volume-weighted shares
+
+---
+
+# Deliverables
+
+1. Implementation plan ordered by dependency (helpers → returns/MAs → breadth metrics → oscillators → bucket + concentration).
+2. Proposed function signatures with docstrings.
+3. Edge case handling notes (new listings, missing caps/volumes, assets with zero volume, delistings, stablecoin filters).
+4. Unit test plan using tiny synthetic datasets with known outcomes.
+5. Example usage snippets (pseudo-code is fine).
+
+Important: Prioritize correctness, no look-ahead bias, and clear definitions over cleverness.

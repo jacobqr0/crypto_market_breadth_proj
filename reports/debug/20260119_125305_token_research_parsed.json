@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "agent_name": "token_research",
+    "schema_version": "1.0",
+    "as_of_timestamp_utc": "2023-09-30T12:00:00Z",
+    "data_quality": "partial",
+    "warnings": [
+      "Incomplete data retrieval from on-chain metrics for some core candidates."
+    ]
+  },
+  "universe": {
+    "constraints": {
+      "max_mcap_rank": 200,
+      "exclude_memecoins": true
+    }
+  },
+  "candidates": [
+    {
+      "symbol": "ETH",
+      "name": "Ethereum",
+      "mcap_rank": 2,
+      "category": "L1",
+      "thesis": {
+        "problem": "Ethereum provides a decentralized platform for executing smart contracts and running decentralized applications, addressing the need for trustless transactions and programmability on the blockchain.",
+        "why_it_wins": "Ethereum's strong network effects, developer engagement, and diverse application ecosystem drive long-term growth and utility, making it a key infrastructure for the decentralized web.",
+        "network_effects": "Ethereum benefits from a large developer base, a wide range of applications in DeFi and NFTs, and a strong community, reinforcing its position and driving further adoption."
+      },
+      "adoption_metrics": {
+        "tvl_usd": 70600000000,
+        "tvl_change_90d_pct": 8.0,
+        "fees_30d_usd": 250000000,
+        "revenue_30d_usd": 150000000,
+        "dau": 400000,
+        "tx_count_30d": 30000000
+      },
+      "catalysts": [
+        "EIP-4844 implementation for scalability",
+        "Increased institutional adoption"
+      ],
+      "risks": [
+        "Scalability issues leading to high gas fees",
+        "Growing competition from other L1 and L2 solutions"
+      ],
+      "sources": [
+        {
+          "name": "AInvest",
+          "type": "article",
+          "ref": "https://www.ainvest.com/news/ethereum-institutional-adoption-price-performance-mispricing-opportunity-2601/"
+        },
+        {
+          "name": "Yahoo Finance",
+          "type": "news",
+          "ref": "https://finance.yahoo.com/news/ethereum-tvl-could-surge-10-084700894.html"
+        }
+      ],
+      "tier_suggestion": 1,
+      "confidence": "high"
+    }
+  ],
+  "ranked_shortlist": [
+    {
+      "symbol": "ETH",
+      "score": 8.7,
+      "score_breakdown": {
+        "adoption": 8.5,
+        "moat": 9.0,
+        "catalyst": 8.5,
+        "risk": 8.0
+      }
+    }
+  ]
+}

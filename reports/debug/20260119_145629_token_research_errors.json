@@ -1,0 +1,11 @@
+{
+  "task_name": "token_research",
+  "run_id": "20260119_145629",
+  "timestamp": "2026-01-19T20:56:30.070436Z",
+  "errors": [
+    "Validation error at 'universe': Field required",
+    "Validation error at 'candidates': Field required",
+    "Validation error at 'ranked_shortlist': Field required"
+  ],
+  "content_preview": "{'meta': {'agent_name': 'token_research', 'schema_version': '1.0', 'as_of_timestamp_utc': '2023-11-01T12:00:00Z', 'data_quality': 'invalid', 'warnings': ['schema_violation']}}"
+}

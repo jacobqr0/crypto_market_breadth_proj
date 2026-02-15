@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "agent_name": "technical_analysis",
+    "schema_version": "1.0",
+    "as_of_timestamp_utc": "2026-01-19T10:00:00Z",
+    "data_quality": "ok",
+    "warnings": []
+  },
+  "assets": [],
+  "breadth": {
+    "universe": "top_50",
+    "pct_above_200d": null,
+    "pct_golden_cross": null,
+    "median_rsi_14": null,
+    "correlation": []
+  }
+}

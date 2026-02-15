@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "agent_name": "orchestrator",
+    "schema_version": "4.0",
+    "as_of_timestamp_utc": "2026-01-19T10:00:00Z",
+    "data_quality": "ok",
+    "warnings": []
+  },
+  "executive_summary": "Diversifying BTC-centric portfolio with high-conviction large-cap L1s (ETH and SOL) aligns well with current risk-on macro conditions, enhancing diversification while capitalizing on growth potential.",
+  "market_context": {
+    "macro_regime": "risk_on",
+    "technical_env": "neutral",
+    "key_considerations": [
+      "Expanding global liquidity and dovish Fed policies.",
+      "Favorable environment for large-cap L1s."
+    ]
+  },
+  "recommendations": [
+    {
+      "symbol": "ETH",
+      "action": "buy",
+      "conviction": "high",
+      "tier": 1,
+      "suggested_allocation_pct_portfolio": 10.0,
+      "suggested_allocation_pct_monthly_budget": null,
+      "time_horizon": "6-12m",
+      "rationale_one_liner": "Leveraging Ethereum's robust network effects and DeFi ecosystem in a risk-on climate.",
+      "rubric": {
+        "problem_solved": "Decentralized platform for applications and smart contracts.",
+        "network_effects": "Strong DeFi and NFT ecosystem network effects.",
+        "why_now": "Positive catalysts from staking and L2 innovations in a supportive macro environment.",
+        "invalidation": "Major scalability or technical issues",
+        "vs_doing_nothing": "Potential for outperforming BTC during bullish cycles.",
+        "downside_risks": "Scalability and technical vulnerabilities.",
+        "portfolio_fit": "Tier 1 asset enhancing risk-adjusted return potential.",
+        "exit_criteria": "Profit at resistance levels; stop on support breaches."
+      },
+      "trading_plan": {
+        "entry_strategy": "Market purchase or pullback to $3,000",
+        "position_size": "$448",
+        "take_profit_targets": [
+          {
+            "target": "$4,500",
+            "sell_pct": 50
+          },
+          {
+            "target": "$5,500",
+            "sell_pct": 50
+          }
+        ],
+        "stop_loss": "Below $3,000",
+        "invalidation_trigger": "Ethereum ecosystem vulnerabilities or failure to advance above prior highs."
+      },
+      "evidence_refs": [
+        "token_research.candidates.ETH",
+        "macro_cycle.regime"
+      ]
+    },
+    {
+      "symbol": "SOL",
+      "action": "buy",
+      "conviction": "high",
+      "tier": 1,
+      "suggested_allocation_pct_portfolio": 10.0,
+      "suggested_allocation_pct_monthly_budget": null,
+      "time_horizon": "6-12m",
+      "rationale_one_liner": "Positioning in Solana offers a high-performance alternative in dApp and gaming sectors.",
+      "rubric": {
+        "problem_solved": "Scalability and cost efficiency for blockchain transactions.",
+        "network_effects": "Wide adoption in DeFi and NFT sectors.",
+        "why_now": "Ecosystem growth and partnerships; network stability.",
+        "invalidation": "Performance outages or centralization concerns.",
+        "vs_doing_nothing": "Adding strategic growth aspects in blockchain innovation.",
+        "downside_risks": "Network instability or security issues.",
+        "portfolio_fit": "Tier 1 exposure boosting potential returns.",
+        "exit_criteria": "Profit at speculative highs, stop on major outages."
+      },
+      "trading_plan": {
+        "entry_strategy": "Buy during retrace to about $20 or stable zones.",
+        "position_size": "$448",
+        "take_profit_targets": [
+          {
+            "target": "$30",
+            "sell_pct": 50
+          },
+          {
+            "target": "$40",
+            "sell_pct": 50
+          }
+        ],
+        "stop_loss": "Below $18",
+        "invalidation_trigger": "Significant ecosystem outages or partnership failures."
+      },
+      "evidence_refs": [
+        "token_research.candidates.SOL",
+        "macro_cycle.regime"
+      ]
+    }
+  ],
+  "default_recommendation": {
+    "action": "hold_btc",
+    "reason": "Maintaining BTC with proposed diversification aligns with risk-on conditions and macro sustainability."
+  }
+}

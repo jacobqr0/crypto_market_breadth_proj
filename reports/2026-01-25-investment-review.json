@@ -1,0 +1,509 @@
+{
+  "report_id": "5b6b4104-3c7e-4cba-baad-ed68d056375b",
+  "generated_at": "2026-01-25 18:46:28",
+  "report_type": "investment_review",
+  "report_version": "5.0",
+  "prompt_versions": {
+    "token_research": "2.0.0",
+    "token_screener": "2.0.0",
+    "fundamentals_analyst": "2.0.0",
+    "research_synthesizer": "2.0.0",
+    "technical_analyst": "2.0.0",
+    "macro_cycle": "2.0.0",
+    "portfolio_context": "2.1.0",
+    "orchestrator": "4.0.0",
+    "qa_risk": "4.0.0",
+    "post_mortem": "1.0.0"
+  },
+  "actionability": {
+    "is_actionable": false,
+    "reason": "BLOCKING: qa_risk: overall_status=reject",
+    "per_input_quality": {
+      "portfolio_context": "ok",
+      "macro_analysis": "partial",
+      "technical_analysis": "partial",
+      "token_research": "ok",
+      "orchestration": "ok",
+      "qa_risk": "ok"
+    }
+  },
+  "validation_status": {
+    "portfolio_context": true,
+    "macro_analysis": true,
+    "technical_analysis": true,
+    "token_research": true,
+    "orchestration": true,
+    "qa_risk": true
+  },
+  "validated_outputs": {
+    "portfolio_context": {
+      "meta": {
+        "agent_name": "portfolio_context",
+        "schema_version": "1.0",
+        "as_of_timestamp_utc": "2026-01-26T00:45:52.610971+00:00",
+        "data_quality": "ok",
+        "warnings": []
+      },
+      "portfolio_totals": {
+        "total_cost_basis_usd": 1340.57,
+        "total_current_value_usd": 4166.84,
+        "total_realized_pnl_usd": -12.5,
+        "drawdown_from_peak_pct": null
+      },
+      "positions": [
+        {
+          "symbol": "SOL",
+          "quantity": 0.7394656,
+          "avg_cost_usd": 133.61,
+          "total_cost_basis_usd": 98.8,
+          "current_price_usd": 118.84,
+          "current_value_usd": 87.88,
+          "allocation_pct_by_value": 2.11,
+          "unrealized_pnl_usd": -10.92,
+          "unrealized_pnl_pct": -11.05,
+          "tier": 1
+        },
+        {
+          "symbol": "btc",
+          "quantity": 0.047060010000000006,
+          "avg_cost_usd": 26387.00728548931,
+          "total_cost_basis_usd": 1241.77,
+          "current_price_usd": 86675.67,
+          "current_value_usd": 4078.96,
+          "allocation_pct_by_value": 97.89,
+          "unrealized_pnl_usd": 2837.19,
+          "unrealized_pnl_pct": 228.48,
+          "tier": 0
+        }
+      ],
+      "derived": {
+        "btc_quantity": 0.047060010000000006,
+        "btc_allocation_pct_by_value": 97.89,
+        "tier2_3_allocation_pct_by_value": 0.0,
+        "max_single_asset_symbol": "btc",
+        "max_single_asset_allocation_pct_by_value": 97.89
+      },
+      "framework": {
+        "config": {
+          "btc_target_min_pct": 40.0,
+          "btc_target_max_pct": 60.0,
+          "single_asset_limit_pct": 20.0,
+          "tier2_3_max_pct": 35.0,
+          "allow_100pct_btc_if_no_alts": false
+        },
+        "checks": {
+          "btc_within_target": false,
+          "any_position_over_limit": false,
+          "positions_over_limit": [],
+          "tier2_3_within_limit": true,
+          "total_allocations_sum_to_100": true,
+          "pricing_complete": true,
+          "contradictions_detected": false,
+          "contradictions": []
+        }
+      }
+    },
+    "macro_analysis": {
+      "meta": {
+        "agent_name": "macro_cycle",
+        "schema_version": "1.0",
+        "as_of_timestamp_utc": "2026-01-25T12:00:00Z",
+        "data_quality": "partial",
+        "warnings": [
+          "Incomplete macroeconomic data may impact the reliability of the assessment."
+        ]
+      },
+      "regime": {
+        "stance": "risk_on",
+        "confidence": "medium"
+      },
+      "macro": {
+        "liquidity": {
+          "summary": "Global liquidity is generally expanding, supported by recent Fed policies aiming to maintain lower interest rates.",
+          "signals": [
+            "Global liquidity measures indicate an increase in central bank balance sheets.",
+            "Market participants show a preference for riskier assets."
+          ]
+        },
+        "fed_policy": {
+          "summary": "The Federal Reserve has adopted a dovish stance with expectations of rate cuts in the near future.",
+          "signals": [
+            "Expectations of rate cuts in Q1 2026.",
+            "Recent dovish statements from FOMC members highlight a flexible approach."
+          ]
+        },
+        "inflation": {
+          "summary": "Inflation rates appear to be stabilizing with signs of moderation, nearing target levels.",
+          "signals": [
+            "CPI reports show inflation cooling down to about 2.5%.",
+            "Core inflation trends are starting to show signs of comfort."
+          ]
+        },
+        "risk_appetite": {
+          "summary": "Risk appetite in traditional markets remains high, buoying crypto optimism.",
+          "signals": [
+            "The VIX index remains below 15, indicating low volatility.",
+            "High yield bond spreads are tight, suggesting confidence in risk assets."
+          ]
+        }
+      },
+      "cycle": {
+        "stage": "mid",
+        "evidence": [
+          "Bitcoin has entered a recovery phase, and increasing adoption rates reflect a healthy market environment.",
+          "Total Value Locked (TVL) across DeFi platforms demonstrates approximately 30% growth year-over-year."
+        ],
+        "halving_context": "Historically, Bitcoin trends toward bullish behaviour approximately 18 months following a halving, suggesting a favorable macro trend in crypto markets."
+      },
+      "narratives": [
+        {
+          "name": "AI & Compute",
+          "momentum": "rising",
+          "substance": "high",
+          "notes": "AI-related projects are gaining traction, especially with the rise of decentralized applications that leverage blockchain technology."
+        },
+        {
+          "name": "DeFi Resurgence",
+          "momentum": "stable",
+          "substance": "medium",
+          "notes": "While DeFi continues to show potential, regulatory scrutiny poses ongoing risks."
+        }
+      ],
+      "implications": {
+        "favor": [
+          "Leading Layer 1 networks (Ethereum, Solana)",
+          "Stablecoins (USDT, USDC)",
+          "AI and infrastructure projects"
+        ],
+        "avoid": [
+          "Highly speculative meme coins",
+          "Overleveraged positions in volatile assets"
+        ]
+      },
+      "sources": [
+        {
+          "name": "Federal Reserve",
+          "type": "url",
+          "ref": "https://federalreserve.gov/...",
+          "as_of": "2026-01-15"
+        },
+        {
+          "name": "CoinDesk",
+          "type": "url",
+          "ref": "https://www.coindesk.com",
+          "as_of": "2026-01-22"
+        },
+        {
+          "name": "The Motley Fool",
+          "type": "url",
+          "ref": "https://www.fool.com/investing/2026/01/25/these-3-cryptocurrencies-could-skyrocket-in-2026/",
+          "as_of": "2026-01-25"
+        }
+      ]
+    },
+    "technical_analysis": {
+      "meta": {
+        "agent_name": "technical_analysis",
+        "schema_version": "1.0",
+        "as_of_timestamp_utc": "2026-01-25T12:00:00Z",
+        "data_quality": "partial",
+        "warnings": []
+      },
+      "assets": [
+        {
+          "symbol": "ETH",
+          "timeframes": {
+            "d1": {
+              "sma_50": 3200.5,
+              "sma_200": 2800.25,
+              "rsi_14": 55.5,
+              "pct_change_7d": 5.2,
+              "pct_change_30d": 12.8
+            },
+            "w1": {
+              "sma_20": 3100.0,
+              "rsi_14": 52.0,
+              "pct_change_12w": 25.5
+            }
+          },
+          "trend": "bullish",
+          "signal": "bullish",
+          "btc_relative": {
+            "pair": "ETH/BTC",
+            "trend": "outperforming",
+            "pct_change_30d_vs_btc": 3.5
+          },
+          "key_levels": {
+            "support": [
+              3000.0,
+              2800.0
+            ],
+            "resistance": [
+              3500.0,
+              4000.0
+            ]
+          }
+        }
+      ],
+      "breadth": {
+        "universe": "top_200",
+        "pct_above_200d": 65.0,
+        "pct_golden_cross": 45.0,
+        "median_rsi_14": 52.5,
+        "correlation": [
+          {
+            "pair": "BTC-ETH",
+            "corr_90d": 0.85
+          }
+        ]
+      }
+    },
+    "token_research": {
+      "meta": {
+        "agent_name": "token_research",
+        "schema_version": "1.0",
+        "as_of_timestamp_utc": "2026-01-25T12:00:00Z",
+        "data_quality": "ok",
+        "warnings": []
+      },
+      "universe": {
+        "constraints": {
+          "max_mcap_rank": 200,
+          "exclude_memecoins": true
+        }
+      },
+      "candidates": [
+        {
+          "symbol": "ETH",
+          "name": "Ethereum",
+          "mcap_rank": 2,
+          "category": "L1",
+          "thesis": {
+            "problem": "Ethereum serves as a highly flexible platform for decentralized applications and smart contracts.",
+            "why_it_wins": "Dominates DeFi with unparalleled ecosystem strength and significant developer engagement.",
+            "network_effects": "Large developer ecosystem, robust DeFi participation, and strong brand presence."
+          },
+          "adoption_metrics": {
+            "tvl_usd": 73600000000.0,
+            "tvl_change_90d_pct": 8.2,
+            "fees_30d_usd": 62000000.0,
+            "revenue_30d_usd": 31000000.0,
+            "dau": 1200000,
+            "tx_count_30d": 3600000
+          },
+          "catalysts": [
+            "Fusaka upgrade increasing network activity",
+            "Technical bullish signals"
+          ],
+          "risks": [
+            "High gas fees during congestion",
+            "Potential regulatory scrutiny over DeFi engagements",
+            "Skepticism from institutions like JPMorgan regarding upgrade impacts"
+          ],
+          "sources": [
+            {
+              "name": "DefiLlama",
+              "type": "dashboard",
+              "ref": "https://defillama.com",
+              "as_of": "2026-01-25"
+            },
+            {
+              "name": "Messari",
+              "type": "blog",
+              "ref": "https://messari.io/newsletter",
+              "as_of": "2026-01-25"
+            }
+          ],
+          "tier_suggestion": 1,
+          "confidence": "high"
+        }
+      ],
+      "ranked_shortlist": [
+        {
+          "symbol": "ETH",
+          "score": 8.6,
+          "score_breakdown": {
+            "adoption": 9.0,
+            "moat": 8.5,
+            "catalyst": 7.5,
+            "risk": 8.5
+          }
+        }
+      ]
+    },
+    "orchestration": {
+      "meta": {
+        "agent_name": "orchestrator",
+        "schema_version": "4.0",
+        "as_of_timestamp_utc": "2026-01-25T12:00:00Z",
+        "data_quality": "ok",
+        "warnings": []
+      },
+      "executive_summary": "Given the bullish market and technical indicators, a moderate allocation to ETH is recommended. BTC allocation will remain above target, adhering to constraints.",
+      "market_context": {
+        "macro_regime": "risk_on",
+        "technical_env": "bullish",
+        "key_considerations": [
+          "Expansion of global liquidity",
+          "Dovish Fed policy",
+          "Low volatility environment"
+        ]
+      },
+      "recommendations": [
+        {
+          "symbol": "ETH",
+          "action": "buy",
+          "conviction": "high",
+          "tier": 1,
+          "suggested_allocation_pct_portfolio": 10.0,
+          "suggested_allocation_pct_monthly_budget": 15.0,
+          "time_horizon": "6-12m",
+          "rationale_one_liner": "ETH is well-poised to benefit from the expanding DeFi market and network upgrades.",
+          "rubric": {
+            "problem_solved": "Ethereum offers a robust platform for dApps and smart contracts, leading the DeFi sector.",
+            "network_effects": "ETH boasts a large developer and user base, strengthening its market position.",
+            "why_now": "Recent technical upgrades and a risk-on macro environment support potential growth.",
+            "invalidation": "Ethereum faces security issues or major DeFi regulation changes.",
+            "vs_doing_nothing": "ETH's potential upside in a favorable macro environment outweighs holding BTC or cash.",
+            "downside_risks": "Regulatory changes, high gas fees, and potential market corrections.",
+            "portfolio_fit": "Strategic allocation to diversify from over-concentrated BTC holdings.",
+            "exit_criteria": "Reduce if ETH falls below key supports, or if BTC outperformance resurges."
+          },
+          "trading_plan": {
+            "entry_strategy": "Buy between $3000 - $3200 or on breakout above $3500.",
+            "position_size": "10% of portfolio (~$400 based on $4000 portfolio value).",
+            "take_profit_targets": [
+              {
+                "target": "4000",
+                "sell_pct": 50.0
+              },
+              {
+                "target": "4500",
+                "sell_pct": 50.0
+              }
+            ],
+            "stop_loss": "Close position on drop below $2800.",
+            "invalidation_trigger": "Major DeFi regulatory crackdown or Ethereum network setbacks."
+          },
+          "evidence_refs": [
+            "technical_analysis.assets.ETH",
+            "token_research.candidates.ETH"
+          ],
+          "prerequisites": [
+            "Macro regime remains risk_on",
+            "ETH remains above $2800 support"
+          ],
+          "dependencies": {
+            "requires": [
+              "Macro regime not risk_off"
+            ],
+            "data_used": [
+              "technical_analysis.assets.ETH",
+              "token_research.candidates.ETH"
+            ]
+          }
+        }
+      ],
+      "default_recommendation": {
+        "action": "hold_btc",
+        "reason": "Maintain BTC position due to its strong performance and protective attributes in the current market regime."
+      }
+    },
+    "qa_risk": {
+      "meta": {
+        "agent_name": "qa_risk",
+        "schema_version": "4.0",
+        "as_of_timestamp_utc": "2026-01-26T00:45:52.610971+00:00",
+        "data_quality": "ok",
+        "warnings": []
+      },
+      "overall_status": "reject",
+      "recommendations_reviewed": 1,
+      "issues_found": 3,
+      "compliance_checklist": [
+        {
+          "check": "data_quality_ok",
+          "status": "pass",
+          "notes": "Portfolio data quality is ok"
+        },
+        {
+          "check": "assets_top_200",
+          "status": "pass",
+          "notes": "All recommended assets within top 200"
+        },
+        {
+          "check": "single_position_le_20pct",
+          "status": "pass",
+          "notes": "No single non-BTC position exceeds 20% limit in the new recommendation"
+        },
+        {
+          "check": "btc_allocation_40_60",
+          "status": "fail",
+          "notes": "BTC allocation is currently over 97%, exceeding the max target of 60%"
+        },
+        {
+          "check": "tier2_3_within_limit",
+          "status": "pass",
+          "notes": "Tier 2+3 allocation is within the 35% limit"
+        },
+        {
+          "check": "no_leverage_derivatives",
+          "status": "pass",
+          "notes": "No leverage, derivatives or yield farming involved"
+        },
+        {
+          "check": "drawdown_le_40pct",
+          "status": "unknown",
+          "notes": "Unknown drawdown level"
+        },
+        {
+          "check": "rubric_complete",
+          "status": "fail",
+          "notes": "Rubric complete, but conviction claim 'high' incorrect, should be 'strong'"
+        },
+        {
+          "check": "trading_plan_complete",
+          "status": "pass",
+          "notes": "Complete trading plan for ETH recommendation"
+        }
+      ],
+      "per_recommendation": [
+        {
+          "symbol": "ETH",
+          "original_action": "buy",
+          "qa_status": "reject",
+          "issues": [
+            "BTC allocation exceeds 60% target",
+            "Very high correlation with existing portfolio",
+            "Conviction value terminology incorrect; should be 'strong'"
+          ],
+          "risk": {
+            "correlation_with_portfolio": "high",
+            "sector_concentration": "Adding to L1 exposure",
+            "conviction": "strong"
+          },
+          "verdict": "reject"
+        }
+      ],
+      "final_verdict": "The recommendation to buy ETH cannot proceed due to critical non-compliance in BTC allocation beyond acceptable range and very high correlation to existing holdings."
+    }
+  },
+  "metadata": {
+    "system_version": "5.0.0",
+    "human_approval_required": true,
+    "json_validated": true
+  },
+  "compliance_summary": {
+    "data_quality": "ok",
+    "btc_within_target": false,
+    "any_position_over_limit": false,
+    "tier2_3_within_limit": true,
+    "pricing_complete": true,
+    "contradictions_detected": false
+  },
+  "recommendations_summary": {
+    "total_count": 1,
+    "actionable_count": 1,
+    "default_action": "hold_btc"
+  }
+}

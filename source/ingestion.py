@@ -2,13 +2,14 @@
 Ingestion orchestration module for CoinGecko market data.
 
 This module implements the control flow for:
-- Initial runs (fetch top 300, backfill historical data)
+- Initial runs (fetch top 350, backfill historical data)
 - Incremental runs (update existing assets, add new top assets)
 - Resumable execution after failures or rate limits
 """
 
 import time
 import logging
+import json
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 
@@ -27,10 +28,19 @@ class IngestionOrchestrator:
     Orchestrates the CoinGecko data ingestion process.
     
     Implements a restartable, idempotent ingestion pipeline that:
-    1. Fetches top 300 assets by market cap
+    1. Fetches top 350 assets by market cap
     2. Backfills ~1 year of historical data
     3. Continues incrementally forward
     """
+    
+    # Target number of top tokens to collect by market cap
+    TARGET_TOP_TOKENS = 350
+    
+    # CoinGecko API max results per page
+    MAX_PER_PAGE = 250
+    
+    # Number of tokens to get from page 2 (TARGET_TOP_TOKENS - MAX_PER_PAGE)
+    PAGE_2_TOKEN_COUNT = 100
     
     # Default backfill period: ~2 years
     DEFAULT_BACKFILL_DAYS = 729
@@ -63,7 +73,8 @@ class IngestionOrchestrator:
                 "coinmarkets": {
                     "vs_currency": "usd",
                     "order": "market_cap_desc",
-                    "per_page": "250"
+                    "per_page": "250",
+                    "page": None  # Will be set per page fetch
                 },
                 "marketchart": {
                     "vs_currency": "usd",
@@ -106,16 +117,17 @@ class IngestionOrchestrator:
     
     def _initial_run(self):
         """
-        Execute initial run: fetch top 300 assets and initialize state.
+        Execute initial run: fetch top 350 assets and initialize state.
         """
-        # Fetch top 300 coins by market cap
+        # Fetch top 350 coins by market cap
         assets = self._fetch_coin_markets()
         
         if not assets:
             logger.warning("No assets returned from coins/markets endpoint")
             return
         
-        # Persist asset metadata
+        # Persist asset metadata for all fetched assets
+        logger.info(f"Persisting metadata for {len(assets)} assets")
         self.store.upsert_asset_metadata(assets)
         
         # Initialize ingestion state for each asset
@@ -126,28 +138,124 @@ class IngestionOrchestrator:
     
     def _incremental_run(self):
         """
-        Execute incremental run: refresh top 300 and merge with existing.
+        Execute incremental run: refresh top 350 and merge with existing.
+        
+        This method:
+        1. Fetches the current top assets from the API
+        2. Updates metadata for assets in the current top list
+        3. Marks assets that dropped out of the top list (sets market_cap_rank to NULL)
+        4. Initializes ingestion state for any newly added assets
         """
-        # Refresh top 300 list
+        # Refresh top 350 list
         current_top_assets = self._fetch_coin_markets()
         
         if current_top_assets:
+            # Update metadata for current top assets (with new rankings)
+            logger.info(f"Updating metadata for {len(current_top_assets)} assets")
             self.store.upsert_asset_metadata(current_top_assets)
             
+            # Mark assets that dropped out of the top list
+            # This sets their market_cap_rank to NULL and updates last_updated_ts
+            current_top_ids = [asset["asset_id"] for asset in current_top_assets]
+            self.store.mark_assets_dropped_from_top_list(current_top_ids)
+            
             # Initialize state for any new assets
-            existing_assets = set(self.store.get_all_asset_ids())
+            # Note: We check against asset_ingestion_state (not asset_metadata) because
+            # new tokens were just added to asset_metadata above. This ensures we correctly
+            # identify assets that need their ingestion state initialized for market chart data.
+            assets_with_state = set(self.store.get_assets_with_ingestion_state())
+            new_assets_count = 0
             for asset in current_top_assets:
-                if asset["asset_id"] not in existing_assets:
+                if asset["asset_id"] not in assets_with_state:
                     self.store.initialize_asset_ingestion_state(asset["asset_id"])
                     logger.info(f"Added new asset to tracking: {asset['asset_id']}")
+                    new_assets_count += 1
+            if new_assets_count > 0:
+                logger.info(f"Initialized {new_assets_count} new assets for market data collection")
     
     def _fetch_coin_markets(self) -> List[Dict[str, Any]]:
         """
-        Fetch top assets from coins/markets endpoint.
+        Fetch top TARGET_TOP_TOKENS assets from coins/markets endpoint with resumable pagination support.
         
+        Fetches page 1 (MAX_PER_PAGE tokens) and page 2 (MAX_PER_PAGE tokens, sliced to PAGE_2_TOKEN_COUNT) 
+        and combines results.
+        Always re-fetches both pages to ensure current metadata.
+        
+        Note: CoinGecko pagination formula is (page-1)*per_page+1 to page*per_page.
+        To get tokens 251-350, we must use page=2 with per_page=250 (returns 251-500),
+        then slice to get only the first 100 (tokens 251-350).
+        
+        :return: List of asset dictionaries (up to TARGET_TOP_TOKENS)
+        """
+        all_assets = []
+        
+        # Always fetch page 1 (for current metadata)
+        logger.info(f"Fetching page 1 (top {self.MAX_PER_PAGE} tokens)")
+        page1_assets = self._fetch_coin_markets_page(page=1, per_page=self.MAX_PER_PAGE)
+        if page1_assets:
+            all_assets.extend(page1_assets)
+            logger.info(f"Fetched page 1: {len(page1_assets)} assets")
+        else:
+            logger.error("No assets returned from page 1 - cannot proceed")
+            return []
+        
+        # Always fetch page 2 (for current metadata, even if previously completed)
+        # Use per_page=MAX_PER_PAGE to get tokens 251-500, then slice to get only 251-350
+        logger.info(f"Fetching page 2 (tokens {self.MAX_PER_PAGE + 1}-{self.TARGET_TOP_TOKENS})")
+        page2_assets = self._fetch_coin_markets_page(page=2, per_page=self.MAX_PER_PAGE)
+        if page2_assets:
+            # Slice to get only first PAGE_2_TOKEN_COUNT tokens (ranks 251-350)
+            page2_assets = page2_assets[:self.PAGE_2_TOKEN_COUNT]
+            all_assets.extend(page2_assets)
+            logger.info(f"Fetched page 2: {len(page2_assets)} assets (sliced to {self.PAGE_2_TOKEN_COUNT})")
+        else:
+            # Retry page 2 once if it fails
+            logger.warning("Page 2 returned no assets, retrying...")
+            page2_assets = self._fetch_coin_markets_page(page=2, per_page=self.MAX_PER_PAGE)
+            if page2_assets:
+                # Slice to get only first PAGE_2_TOKEN_COUNT tokens (ranks 251-350)
+                page2_assets = page2_assets[:self.PAGE_2_TOKEN_COUNT]
+                all_assets.extend(page2_assets)
+                logger.info(f"Page 2 retry successful: {len(page2_assets)} assets (sliced to {self.PAGE_2_TOKEN_COUNT})")
+            else:
+                logger.error(f"Page 2 failed after retry - only {self.MAX_PER_PAGE} tokens collected")
+        
+        # Validate we got close to TARGET_TOP_TOKENS tokens
+        total_assets = len(all_assets)
+        if total_assets < self.TARGET_TOP_TOKENS - 50:
+            logger.warning(f"Only collected {total_assets} tokens, expected ~{self.TARGET_TOP_TOKENS}")
+        elif total_assets == self.TARGET_TOP_TOKENS:
+            logger.info(f"Successfully collected all {self.TARGET_TOP_TOKENS} tokens")
+        else:
+            logger.info(f"Collected {total_assets} tokens (expected {self.TARGET_TOP_TOKENS})")
+        
+        # Update pagination state to mark both pages as completed
+        self.store.update_ingestion_state(
+            coinmarkets_completed_pages=json.dumps([1, 2]),
+            coinmarkets_current_page=None,
+            coinmarkets_total_pages=None
+        )
+
+        # Cleanup pagination state after successful fetch to avoid stale values
+        self.store.clear_pagination_state()
+        logger.info("Cleared coinmarkets pagination state after fetch")
+        
+        return all_assets
+    
+    def _fetch_coin_markets_page(self, page: int, per_page: int) -> List[Dict[str, Any]]:
+        """
+        Helper to fetch a single page of coin markets.
+        
+        :param page: Page number to fetch (1 or 2)
+        :param per_page: Number of results per page (250 for both pages)
         :return: List of asset dictionaries
         """
-        # Build state for coins/markets request
+        # Build secrets with specific page
+        secrets = self._default_secrets()
+        secrets["parameters"]["coinmarkets"]["per_page"] = str(per_page)
+        secrets["parameters"]["coinmarkets"]["page"] = str(page)
+        
+        # Build state and make request
         state = {
             "api": None,  # None triggers coinmarkets endpoint
             "marketchart_state": {
@@ -156,11 +264,10 @@ class IngestionOrchestrator:
             }
         }
         
-        api = CoinGeckoAPI(state, self.secrets)
+        api = CoinGeckoAPI(state, secrets)
         endpoint = api.build_api()
         
-        self.store.update_ingestion_state(current_endpoint="coinmarkets")
-        logger.info(f"Fetching coins/markets: {endpoint}")
+        logger.info(f"Fetching coins/markets page {page}: {endpoint}")
         
         response = api.make_request(endpoint)
         parsed = api.build_response(response)
@@ -188,7 +295,10 @@ class IngestionOrchestrator:
             logger.info("All assets are up to date")
             return
         
-        logger.info(f"Processing {len(assets_to_query)} assets")
+        # Validate that we have assets from the top 350 list
+        total_tracked_assets = len(self.store.get_all_asset_ids())
+        logger.info(f"Processing {len(assets_to_query)} assets (out of {total_tracked_assets} total tracked)")
+        
         self.store.update_ingestion_state(current_endpoint="marketchart")
         
         processed = 0

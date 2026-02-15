@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "agent_name": "macro_cycle",
+    "schema_version": "1.0",
+    "as_of_timestamp_utc": "2026-01-19T12:00:00Z",
+    "data_quality": "ok",
+    "warnings": []
+  },
+  "regime": {
+    "stance": "risk_on",
+    "confidence": "high"
+  },
+  "macro": {
+    "liquidity": {
+      "summary": "Global liquidity is expanding as central banks implement supportive measures, leading to increased capital flows into risk assets.",
+      "signals": [
+        "Fed balance sheet growing",
+        "M2 growth positive"
+      ]
+    },
+    "fed_policy": {
+      "summary": "Fed has adopted a dovish stance with indications of potential rate cuts, which supports risk asset valuations.",
+      "signals": [
+        "Rate cut expected Q1",
+        "Dovish FOMC statements"
+      ]
+    },
+    "inflation": {
+      "summary": "Inflation trends are stabilizing and trending down toward target levels, reducing concerns about monetary tightening.",
+      "signals": [
+        "CPI at 2.5%",
+        "PCE stable"
+      ]
+    },
+    "risk_appetite": {
+      "summary": "Risk appetite indicators are elevated, suggesting a favorable environment for risk-taking in markets, including crypto.",
+      "signals": [
+        "VIX below 15",
+        "High yield spreads tight"
+      ]
+    }
+  },
+  "cycle": {
+    "stage": "mid",
+    "evidence": [
+      "Bitcoin 18 months post-halving, typically a bullish indicator",
+      "TVL across DeFi protocols growing 30% YoY"
+    ],
+    "halving_context": "18 months post-halving, historically bullish period"
+  },
+  "narratives": [
+    {
+      "name": "AI & Compute",
+      "momentum": "rising",
+      "substance": "high",
+      "notes": "AI narrative gaining traction with real usage growth in various sectors."
+    },
+    {
+      "name": "Real World Assets (RWA)",
+      "momentum": "rising",
+      "substance": "medium",
+      "notes": "Growing interest in tokenizing real-world assets; still early in broad adoption."
+    },
+    {
+      "name": "DeFi Innovations",
+      "momentum": "stable",
+      "substance": "high",
+      "notes": "Continued development and adoption in DeFi, solidifying its importance in the ecosystem."
+    }
+  ],
+  "implications": {
+    "favor": [
+      "Large-cap L1s like BTC and ETH",
+      "AI infrastructure tokens like FET",
+      "RWA protocols capturing market share"
+    ],
+    "avoid": [
+      "High-beta memecoins like DOGE",
+      "Leveraged positions due to potential volatility risks"
+    ]
+  },
+  "sources": [
+    {
+      "name": "Federal Reserve",
+      "type": "url",
+      "ref": "https://federalreserve.gov/",
+      "as_of": "2026-01-15"
+    }
+  ]
+}

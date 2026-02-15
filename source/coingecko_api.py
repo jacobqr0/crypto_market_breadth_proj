@@ -8,7 +8,6 @@ import os
 
 import requests 
 import json
-import pandas as pd 
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +34,7 @@ class CoinMarketParameters:
     vs_currency: str
     order: str
     per_page: str
+    page: Optional[str] = None
 
 @dataclass 
 class MarketChartParameters:
@@ -74,13 +74,13 @@ class CoinGeckoAPI:
         api = self.API_ENDPOINTS[self.API_KEY_COIN_MARKETS] if self.original_state.api is None else self.API_ENDPOINTS[self.original_state.api]
 
         if api.api == self.API_KEY_COIN_MARKETS:
-
-            # TODO: Figure out if we need to paginate 
+            # Support pagination via page parameter
+            page_number = self.secrets.parameters.coinmarkets.page if self.secrets.parameters.coinmarkets.page else "1"
             api_endpoint = (f"{self.secrets.base_url}"
                             f"coins/markets?vs_currency={self.secrets.parameters.coinmarkets.vs_currency}"
                             f"&order={self.secrets.parameters.coinmarkets.order}"
                             f"&per_page={self.secrets.parameters.coinmarkets.per_page}"
-                            f"&page=1"
+                            f"&page={page_number}"
                             )
         
         elif api.api == self.API_KEY_MARKET_CHART:

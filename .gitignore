@@ -7,3 +7,6 @@ __pycache__
 .cursor/
 *.duckdb
 *.duckdb.wal
+bitcoin_transactions.csv
+investment_framework.md
+load_bitcoin_transactions.py

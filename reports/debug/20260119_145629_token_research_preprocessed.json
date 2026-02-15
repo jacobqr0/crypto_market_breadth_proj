@@ -1,0 +1,11 @@
+{
+  "meta": {
+    "agent_name": "token_research",
+    "schema_version": "1.0",
+    "as_of_timestamp_utc": "2023-11-01T12:00:00Z",
+    "data_quality": "invalid",
+    "warnings": [
+      "schema_violation"
+    ]
+  }
+}

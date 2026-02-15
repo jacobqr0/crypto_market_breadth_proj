@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "agent_name": "portfolio_context",
+    "schema_version": "1.0",
+    "as_of_timestamp_utc": "2026-01-18T12:00:00Z",
+    "data_quality": "ok",
+    "warnings": []
+  },
+  "portfolio_totals": {
+    "total_cost_basis_usd": 0,
+    "total_current_value_usd": 0,
+    "total_realized_pnl_usd": 0,
+    "drawdown_from_peak_pct": null
+  },
+  "positions": [],
+  "derived": {
+    "btc_quantity": 0,
+    "btc_allocation_pct_by_value": 0,
+    "tier2_3_allocation_pct_by_value": 0,
+    "max_single_asset_symbol": null,
+    "max_single_asset_allocation_pct_by_value": 0
+  },
+  "framework": {
+    "config": {
+      "btc_target_min_pct": 40,
+      "btc_target_max_pct": 60,
+      "single_asset_limit_pct": 20,
+      "tier2_3_max_pct": 35,
+      "allow_100pct_btc_if_no_alts": false
+    },
+    "checks": {
+      "btc_within_target": null,
+      "any_position_over_limit": null,
+      "positions_over_limit": [],
+      "tier2_3_within_limit": null,
+      "total_allocations_sum_to_100": null,
+      "pricing_complete": false,
+      "contradictions_detected": false,
+      "contradictions": []
+    }
+  }
+}

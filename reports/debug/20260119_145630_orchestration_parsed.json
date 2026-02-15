@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "agent_name": "orchestrator",
+    "schema_version": "4.0",
+    "as_of_timestamp_utc": "2026-01-19T20:56:02.830047+00:00",
+    "data_quality": "invalid",
+    "warnings": [
+      "token_research and technical_analysis modules reported schema violation"
+    ]
+  },
+  "executive_summary": "Due to invalid data quality from key inputs, no new buy recommendations are made. Current holdings should be maintained while data issues are investigated.",
+  "market_context": {
+    "macro_regime": "risk_on",
+    "technical_env": "neutral",
+    "key_considerations": [
+      "Invalid data from token research and technical analysis",
+      "Portfolio entirely allocated to BTC currently"
+    ]
+  },
+  "recommendations": [
+    {
+      "symbol": "btc",
+      "action": "hold",
+      "conviction": "medium",
+      "tier": 0,
+      "time_horizon": "12m+",
+      "rationale_one_liner": "Maintain BTC position due to risk-on macro regime despite data issues.",
+      "rubric": {
+        "problem_solved": "BTC serves as a digital store of value.",
+        "network_effects": "Largest and most secure blockchain with the highest hash rate.",
+        "why_now": "Macro conditions support holding risk assets like BTC.",
+        "invalidation": "Significant shift to risk-off macro conditions.",
+        "vs_doing_nothing": "Continue exposure to gain from any BTC appreciation.",
+        "downside_risks": "Potential macroeconomic shifts that could increase market volatility.",
+        "portfolio_fit": "Continues to align with Tier 0 long-term holding.",
+        "exit_criteria": "Re-evaluate if macro conditions change significantly to risk-off."
+      },
+      "evidence_refs": [
+        "macro_cycle.regime"
+      ],
+      "prerequisites": [
+        "Data issues to be resolved",
+        "Continued risk-on macro regime"
+      ],
+      "dependencies": {
+        "requires": [
+          "Correction of data quality issues"
+        ],
+        "data_used": [
+          "macro_cycle.regime"
+        ]
+      }
+    }
+  ],
+  "default_recommendation": {
+    "action": "hold_btc",
+    "reason": "Invalid data quality - hold existing BTC position until clarity is restored"
+  }
+}

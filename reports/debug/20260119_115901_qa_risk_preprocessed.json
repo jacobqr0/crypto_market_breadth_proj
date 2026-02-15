@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "agent_name": "qa_risk",
+    "schema_version": "4.0",
+    "as_of_timestamp_utc": "2026-01-19T17:57:59Z",
+    "data_quality": "ok",
+    "warnings": []
+  },
+  "overall_status": "flag",
+  "recommendations_reviewed": 2,
+  "issues_found": 2,
+  "compliance_checklist": [
+    {
+      "check": "data_quality_ok",
+      "status": "pass",
+      "notes": "Portfolio data quality is ok"
+    },
+    {
+      "check": "assets_top_200",
+      "status": "pass",
+      "notes": "All recommended assets within top 200 by market cap, ETH (rank 2) and SOL (rank 6)"
+    },
+    {
+      "check": "single_position_le_20pct",
+      "status": "pass",
+      "notes": "No position exceeds 20% limit after proposed allocations"
+    },
+    {
+      "check": "btc_allocation_40_60",
+      "status": "fail",
+      "notes": "BTC allocation would fall below 40% with the proposed diversification"
+    },
+    {
+      "check": "tier2_3_within_limit",
+      "status": "pass",
+      "notes": "Tier 2+3 allocation is within limits"
+    },
+    {
+      "check": "no_leverage_derivatives",
+      "status": "pass",
+      "notes": "No leverage or derivatives involved"
+    },
+    {
+      "check": "drawdown_le_40pct",
+      "status": null,
+      "notes": "Drawdown data is missing"
+    },
+    {
+      "check": "rubric_complete",
+      "status": "pass",
+      "notes": "All 8 questions answered for both ETH and SOL"
+    },
+    {
+      "check": "trading_plan_complete",
+      "status": "pass",
+      "notes": "Both ETH and SOL recommendations have complete trading plans"
+    }
+  ],
+  "per_recommendation": [
+    {
+      "symbol": "ETH",
+      "original_action": "buy",
+      "qa_status": "flag",
+      "issues": [
+        "High correlation with BTC limits diversification benefit"
+      ],
+      "risk": {
+        "correlation_with_portfolio": "high",
+        "sector_concentration": "Adding to L1 exposure (already have BTC)",
+        "conviction": "strong"
+      },
+      "verdict": "modify"
+    },
+    {
+      "symbol": "SOL",
+      "original_action": "buy",
+      "qa_status": "flag",
+      "issues": [
+        "High correlation with BTC limits diversification benefit"
+      ],
+      "risk": {
+        "correlation_with_portfolio": "high",
+        "sector_concentration": "Adding to L1 exposure (already have BTC)",
+        "conviction": "strong"
+      },
+      "verdict": "modify"
+    }
+  ],
+  "final_verdict": "Recommendations flagged due to correlation issues and potential BTC allocation breach. While the trading plans and rubrics for ETH and SOL are complete, their high correlation with BTC suggests minimal diversification benefit. This should be considered in the final decision, and an adjustment to maintain BTC allocation within the strategic range is advisable."
+}

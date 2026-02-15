@@ -13,6 +13,8 @@ import time
 import sys
 import os
 
+os.environ.setdefault("DUCKDB_SKIP_PANDAS_IMPORT", "1")
+
 # Add source directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -106,6 +108,9 @@ class TestIngestionStateOperations:
         assert isinstance(state, IngestionState)
         assert state.current_endpoint is None
         assert state.run_status == "idle"
+        assert state.coinmarkets_current_page is None
+        assert state.coinmarkets_total_pages is None
+        assert state.coinmarkets_completed_pages is None
     
     def test_update_ingestion_state(self, store):
         """Verify ingestion state updates."""
@@ -129,6 +134,53 @@ class TestIngestionStateOperations:
         
         assert state.current_endpoint == "coinmarkets"  # Unchanged
         assert state.run_status == "rate_limited"  # Updated
+    
+    def test_update_ingestion_state_pagination(self, store):
+        """Verify pagination state can be stored and retrieved."""
+        import json
+        
+        store.update_ingestion_state(
+            current_endpoint="coinmarkets",
+            coinmarkets_current_page=1,
+            coinmarkets_total_pages=2,
+            coinmarkets_completed_pages=json.dumps([1])
+        )
+        
+        state = store.get_ingestion_state()
+        
+        assert state.coinmarkets_current_page == 1
+        assert state.coinmarkets_total_pages == 2
+        assert state.coinmarkets_completed_pages == "[1]"
+        
+        # Update to page 2
+        store.update_ingestion_state(
+            coinmarkets_current_page=2,
+            coinmarkets_completed_pages=json.dumps([1, 2])
+        )
+        
+        state = store.get_ingestion_state()
+        assert state.coinmarkets_current_page == 2
+        completed = json.loads(state.coinmarkets_completed_pages)
+        assert 1 in completed
+        assert 2 in completed
+    
+    def test_clear_pagination_state(self, store):
+        """Verify pagination state can be cleared."""
+        import json
+        
+        store.update_ingestion_state(
+            coinmarkets_current_page=2,
+            coinmarkets_total_pages=2,
+            coinmarkets_completed_pages=json.dumps([1, 2])
+        )
+        
+        # Clear pagination state
+        store.clear_pagination_state()
+        
+        state = store.get_ingestion_state()
+        assert state.coinmarkets_current_page is None
+        assert state.coinmarkets_total_pages is None
+        assert state.coinmarkets_completed_pages is None
 
 
 class TestAssetMetadataOperations:
@@ -266,6 +318,65 @@ class TestAssetIngestionStateOperations:
         
         with_data = store.get_assets_with_data()
         assert with_data == ["bitcoin"]
+    
+    def test_get_assets_with_ingestion_state(self, store, sample_assets):
+        """Verify all assets with ingestion state are returned (including those without data)."""
+        store.upsert_asset_metadata(sample_assets)
+        
+        # Initially no assets have ingestion state
+        with_state = store.get_assets_with_ingestion_state()
+        assert len(with_state) == 0
+        
+        # Initialize state for bitcoin only
+        store.initialize_asset_ingestion_state("bitcoin")
+        with_state = store.get_assets_with_ingestion_state()
+        assert len(with_state) == 1
+        assert "bitcoin" in with_state
+        
+        # Initialize state for all assets
+        for asset in sample_assets:
+            store.initialize_asset_ingestion_state(asset["asset_id"])
+        
+        with_state = store.get_assets_with_ingestion_state()
+        assert len(with_state) == 3
+        assert set(with_state) == {"bitcoin", "ethereum", "tether"}
+        
+        # Note: get_assets_with_ingestion_state returns ALL assets with state,
+        # not just those that have been fetched. This is different from get_assets_with_data.
+        with_data = store.get_assets_with_data()
+        assert len(with_data) == 0  # None have data yet
+    
+    def test_get_assets_with_ingestion_state_vs_metadata(self, store, sample_assets):
+        """
+        Verify distinction between assets in metadata vs those with ingestion state.
+        
+        This tests the fix for the bug where new tokens added to asset_metadata
+        were not getting their ingestion state initialized because the check
+        used get_all_asset_ids() (from asset_metadata) instead of
+        get_assets_with_ingestion_state() (from asset_ingestion_state).
+        """
+        # Add assets to metadata
+        store.upsert_asset_metadata(sample_assets)
+        
+        # All assets are in metadata
+        all_ids = store.get_all_asset_ids()
+        assert len(all_ids) == 3
+        
+        # But none have ingestion state yet
+        with_state = store.get_assets_with_ingestion_state()
+        assert len(with_state) == 0
+        
+        # Initialize ingestion state for only 2 assets
+        store.initialize_asset_ingestion_state("bitcoin")
+        store.initialize_asset_ingestion_state("ethereum")
+        
+        # Now we can correctly identify which assets need initialization
+        with_state = store.get_assets_with_ingestion_state()
+        all_ids = store.get_all_asset_ids()
+        
+        # The difference shows assets needing initialization
+        need_init = set(all_ids) - set(with_state)
+        assert need_init == {"tether"}
 
 
 class TestMarketDataOperations:
@@ -491,4 +602,192 @@ class TestIngestionSummary:
         assert summary["assets_pending"] == 2
         assert summary["total_data_points"] == 3
         assert summary["run_status"] == "idle"
+
+
+class TestGetAssetMetadata:
+    """Tests for get_asset_metadata method."""
+    
+    def test_get_asset_metadata_existing(self, store, sample_assets):
+        """Verify metadata retrieval for existing asset."""
+        store.upsert_asset_metadata(sample_assets)
+        
+        metadata = store.get_asset_metadata("bitcoin")
+        
+        assert metadata is not None
+        assert metadata.asset_id == "bitcoin"
+        assert metadata.symbol == "btc"
+        assert metadata.name == "Bitcoin"
+        assert metadata.market_cap_rank == 1
+        assert metadata.first_seen_ts is not None
+        assert metadata.last_updated_ts is not None
+    
+    def test_get_asset_metadata_nonexistent(self, store):
+        """Verify None returned for nonexistent asset."""
+        metadata = store.get_asset_metadata("nonexistent")
+        
+        assert metadata is None
+    
+    def test_get_asset_metadata_with_null_rank(self, store):
+        """Verify metadata retrieval for asset with NULL rank."""
+        store.upsert_asset_metadata([
+            {"asset_id": "dropped_coin", "symbol": "drop", "name": "Dropped", "market_cap_rank": None}
+        ])
+        
+        metadata = store.get_asset_metadata("dropped_coin")
+        
+        assert metadata is not None
+        assert metadata.asset_id == "dropped_coin"
+        assert metadata.market_cap_rank is None
+
+
+class TestMarkAssetsDroppedFromTopList:
+    """Tests for mark_assets_dropped_from_top_list method."""
+    
+    def test_marks_dropped_assets_rank_as_null(self, store, sample_assets):
+        """Verify dropped assets have market_cap_rank set to NULL."""
+        store.upsert_asset_metadata(sample_assets)
+        
+        # Initialize ingestion state for all assets (they are being tracked)
+        for asset in sample_assets:
+            store.initialize_asset_ingestion_state(asset["asset_id"])
+        
+        # Verify initial ranks
+        assert store.get_asset_metadata("tether").market_cap_rank == 3
+        
+        # Now only bitcoin and ethereum are in the top list (tether dropped)
+        current_top_ids = ["bitcoin", "ethereum"]
+        store.mark_assets_dropped_from_top_list(current_top_ids)
+        
+        # Verify tether's rank is now NULL
+        tether = store.get_asset_metadata("tether")
+        assert tether.market_cap_rank is None
+        
+        # Verify bitcoin and ethereum ranks unchanged
+        assert store.get_asset_metadata("bitcoin").market_cap_rank == 1
+        assert store.get_asset_metadata("ethereum").market_cap_rank == 2
+    
+    def test_updates_last_updated_ts_for_dropped_assets(self, store, sample_assets):
+        """Verify dropped assets have last_updated_ts updated."""
+        import time
+        
+        store.upsert_asset_metadata(sample_assets)
+        
+        for asset in sample_assets:
+            store.initialize_asset_ingestion_state(asset["asset_id"])
+        
+        initial_ts = store.get_asset_metadata("tether").last_updated_ts
+        
+        # Small delay to ensure timestamp difference
+        time.sleep(0.1)
+        
+        # tether dropped
+        current_top_ids = ["bitcoin", "ethereum"]
+        store.mark_assets_dropped_from_top_list(current_top_ids)
+        
+        after_ts = store.get_asset_metadata("tether").last_updated_ts
+        
+        assert after_ts > initial_ts
+    
+    def test_no_effect_if_all_tracked_in_top_list(self, store, sample_assets):
+        """Verify no changes if all tracked assets are in top list."""
+        store.upsert_asset_metadata(sample_assets)
+        
+        for asset in sample_assets:
+            store.initialize_asset_ingestion_state(asset["asset_id"])
+        
+        # All tracked assets are still in the top list
+        current_top_ids = ["bitcoin", "ethereum", "tether"]
+        store.mark_assets_dropped_from_top_list(current_top_ids)
+        
+        # All ranks should be unchanged
+        assert store.get_asset_metadata("bitcoin").market_cap_rank == 1
+        assert store.get_asset_metadata("ethereum").market_cap_rank == 2
+        assert store.get_asset_metadata("tether").market_cap_rank == 3
+    
+    def test_handles_empty_top_list(self, store, sample_assets):
+        """Verify handles empty top list gracefully."""
+        store.upsert_asset_metadata(sample_assets)
+        
+        for asset in sample_assets:
+            store.initialize_asset_ingestion_state(asset["asset_id"])
+        
+        # Empty list should not raise error but also not mark anything
+        store.mark_assets_dropped_from_top_list([])
+        
+        # Ranks unchanged (method returns early for empty list)
+        assert store.get_asset_metadata("bitcoin").market_cap_rank == 1
+    
+    def test_only_affects_tracked_assets(self, store, sample_assets):
+        """Verify only assets with ingestion state are affected."""
+        store.upsert_asset_metadata(sample_assets)
+        
+        # Only initialize ingestion for bitcoin and ethereum
+        store.initialize_asset_ingestion_state("bitcoin")
+        store.initialize_asset_ingestion_state("ethereum")
+        # tether has metadata but NOT ingestion state (not tracked)
+        
+        # bitcoin dropped from top list
+        current_top_ids = ["ethereum", "tether", "binancecoin"]
+        store.mark_assets_dropped_from_top_list(current_top_ids)
+        
+        # bitcoin should be marked as dropped (has ingestion state, not in top list)
+        assert store.get_asset_metadata("bitcoin").market_cap_rank is None
+        
+        # ethereum is in top list
+        assert store.get_asset_metadata("ethereum").market_cap_rank == 2
+        
+        # tether was never tracked (no ingestion state), so unchanged
+        assert store.get_asset_metadata("tether").market_cap_rank == 3
+    
+    def test_multiple_assets_dropped(self, store):
+        """Verify multiple assets can be dropped at once."""
+        assets = [
+            {"asset_id": "bitcoin", "symbol": "btc", "name": "Bitcoin", "market_cap_rank": 1},
+            {"asset_id": "ethereum", "symbol": "eth", "name": "Ethereum", "market_cap_rank": 2},
+            {"asset_id": "tether", "symbol": "usdt", "name": "Tether", "market_cap_rank": 3},
+            {"asset_id": "binancecoin", "symbol": "bnb", "name": "BNB", "market_cap_rank": 4},
+            {"asset_id": "ripple", "symbol": "xrp", "name": "XRP", "market_cap_rank": 5},
+        ]
+        store.upsert_asset_metadata(assets)
+        
+        for asset in assets:
+            store.initialize_asset_ingestion_state(asset["asset_id"])
+        
+        # Only bitcoin remains in top list
+        current_top_ids = ["bitcoin"]
+        store.mark_assets_dropped_from_top_list(current_top_ids)
+        
+        # Check all dropped assets have NULL rank
+        assert store.get_asset_metadata("bitcoin").market_cap_rank == 1  # Stayed
+        assert store.get_asset_metadata("ethereum").market_cap_rank is None  # Dropped
+        assert store.get_asset_metadata("tether").market_cap_rank is None  # Dropped
+        assert store.get_asset_metadata("binancecoin").market_cap_rank is None  # Dropped
+        assert store.get_asset_metadata("ripple").market_cap_rank is None  # Dropped
+    
+    def test_no_duplicate_ranks_after_drop(self, store, sample_assets):
+        """Verify no duplicate market_cap_rank values after dropping assets."""
+        store.upsert_asset_metadata(sample_assets)
+        
+        for asset in sample_assets:
+            store.initialize_asset_ingestion_state(asset["asset_id"])
+        
+        # Add new asset that takes rank 3
+        new_asset = {"asset_id": "binancecoin", "symbol": "bnb", "name": "BNB", "market_cap_rank": 3}
+        store.upsert_asset_metadata([new_asset])
+        store.initialize_asset_ingestion_state("binancecoin")
+        
+        # tether dropped, bnb at rank 3
+        current_top_ids = ["bitcoin", "ethereum", "binancecoin"]
+        store.mark_assets_dropped_from_top_list(current_top_ids)
+        
+        # Check for duplicate ranks
+        result = store.conn.execute("""
+            SELECT market_cap_rank, COUNT(*) as cnt
+            FROM asset_metadata
+            WHERE market_cap_rank IS NOT NULL
+            GROUP BY market_cap_rank
+            HAVING COUNT(*) > 1
+        """).fetchall()
+        
+        assert len(result) == 0, f"Found duplicate market_cap_ranks: {result}"
 

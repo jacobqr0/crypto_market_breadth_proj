@@ -1,0 +1,90 @@
+{
+  "meta": {
+    "agent_name": "macro_cycle",
+    "schema_version": "1.0",
+    "as_of_timestamp_utc": "2026-01-19T10:00:00Z",
+    "data_quality": "ok",
+    "warnings": []
+  },
+  "regime": {
+    "stance": "risk_on",
+    "confidence": "high"
+  },
+  "macro": {
+    "liquidity": {
+      "summary": "Global liquidity is expanding as central banks maintain accommodative policies, supporting risk assets.",
+      "signals": [
+        "Fed balance sheet growing",
+        "M2 growth positive"
+      ]
+    },
+    "fed_policy": {
+      "summary": "Fed is signaling a dovish stance with expectations for rate cuts in the upcoming months which should bolster risk-taking in markets.",
+      "signals": [
+        "Rate cut expected Q1 2026",
+        "Dovish FOMC statements"
+      ]
+    },
+    "inflation": {
+      "summary": "Inflation trends show signs of stabilization, moving towards target levels, reducing pressure on consumers and investors.",
+      "signals": [
+        "CPI at 2.5%",
+        "PCE stable"
+      ]
+    },
+    "risk_appetite": {
+      "summary": "Risk appetite in traditional markets remains elevated, indicated by low volatility and tight credit spreads.",
+      "signals": [
+        "VIX below 15",
+        "High yield spreads tight"
+      ]
+    }
+  },
+  "cycle": {
+    "stage": "mid",
+    "evidence": [
+      "Bitcoin is approximately 18 months post-halving, historically a bullish period for crypto markets.",
+      "Total Value Locked (TVL) in DeFi projects is growing by 30% YoY, indicating healthy adoption and investment in the ecosystem."
+    ],
+    "halving_context": "18 months post-halving, historically bullish period; past halvings have led to substantial price increases in the year following."
+  },
+  "narratives": [
+    {
+      "name": "AI & Compute",
+      "momentum": "rising",
+      "substance": "high",
+      "notes": "AI regulatory advancements and adoption across sectors are driving real usage growth in decentralized applications."
+    },
+    {
+      "name": "Real World Assets (RWA)",
+      "momentum": "stable",
+      "substance": "medium",
+      "notes": "Integration of blockchain technology with traditional assets is gaining traction, but still limited in scope."
+    },
+    {
+      "name": "DeFi Innovation",
+      "momentum": "rising",
+      "substance": "high",
+      "notes": "Significant growth within DeFi protocols as funds flow back into liquidity."
+    }
+  ],
+  "implications": {
+    "favor": [
+      "Large-cap L1s such as Ethereum and Solana due to strong fundamentals and adoption metrics.",
+      "RWA protocols that integrate traditional finance with tokens.",
+      "AI infrastructure tokens that leverage the ongoing narrative."
+    ],
+    "avoid": [
+      "High-beta memecoins which are speculative in nature and suffer from high volatility and regulatory scrutiny.",
+      "Over-leveraged positions in uncertain phases of the market."
+    ]
+  },
+  "sources": [
+    {
+      "name": "Federal Reserve",
+      "type": "url",
+      "ref": "https://federalreserve.gov/",
+      "as_of": "2026-01-15"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "meta": {
+    "agent_name": "orchestrator",
+    "schema_version": "1.0",
+    "as_of_timestamp_utc": "2026-01-18T12:00:00Z",
+    "data_quality": "ok",
+    "warnings": []
+  },
+  "executive_summary": "Test summary",
+  "market_context": {
+    "macro_regime": "risk_on",
+    "technical_env": "bullish",
+    "key_considerations": []
+  },
+  "recommendations": [
+    {
+      "symbol": "ETH",
+      "action": "watch",
+      "conviction": "high",
+      "tier": 1,
+      "time_horizon": "6-12m",
+      "rationale_one_liner": "Test",
+      "rubric": {
+        "problem_solved": "Test",
+        "network_effects": "Test",
+        "why_now": "Test",
+        "invalidation": "Test",
+        "vs_doing_nothing": "Test",
+        "downside_risks": "Test",
+        "portfolio_fit": "Test",
+        "exit_criteria": "Test"
+      },
+      "trading_plan": {
+        "entry_strategy": "DCA",
+        "position_size": "5%",
+        "take_profit_targets": [
+          {
+            "target": "4000",
+            "sell_pct": 50
+          },
+          {
+            "target": "5000",
+            "sell_pct": 50
+          }
+        ],
+        "stop_loss": "3000",
+        "invalidation_trigger": "Test"
+      },
+      "evidence_refs": [],
+      "prerequisites": [],
+      "dependencies": {
+        "requires": [],
+        "data_used": []
+      }
+    }
+  ],
+  "default_recommendation": {
+    "action": "hold_btc",
+    "reason": "Test"
+  }
+}
